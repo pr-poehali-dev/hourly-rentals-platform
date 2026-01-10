@@ -201,7 +201,10 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     description: '', 
     images: [] as string[], 
     square_meters: 0,
-    features: [] as string[]
+    features: [] as string[],
+    min_hours: 1,
+    payment_methods: 'Наличные, банковская карта при заселении' as string,
+    cancellation_policy: 'Бесплатная отмена за 1 час до заселения' as string
   });
   const [uploadingRoomPhotos, setUploadingRoomPhotos] = useState(false);
   const [editingRoomIndex, setEditingRoomIndex] = useState<number | null>(null);
@@ -560,7 +563,10 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
         description: '', 
         images: [], 
         square_meters: 0,
-        features: []
+        features: [],
+        min_hours: 1,
+        payment_methods: 'Наличные, банковская карта при заселении',
+        cancellation_policy: 'Бесплатная отмена за 1 час до заселения'
       });
     }
   };
@@ -592,7 +598,10 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
       description: room.description || '',
       images: Array.isArray(room.images) ? room.images : [],
       square_meters: room.square_meters || 0,
-      features: Array.isArray(room.features) ? room.features : []
+      features: Array.isArray(room.features) ? room.features : [],
+      min_hours: room.min_hours || 1,
+      payment_methods: room.payment_methods || 'Наличные, банковская карта при заселении',
+      cancellation_policy: room.cancellation_policy || 'Бесплатная отмена за 1 час до заселения'
     });
     setEditingRoomIndex(index);
   };
@@ -612,7 +621,10 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
         description: '', 
         images: [], 
         square_meters: 0,
-        features: []
+        features: [],
+        min_hours: 1,
+        payment_methods: 'Наличные, банковская карта при заселении',
+        cancellation_policy: 'Бесплатная отмена за 1 час до заселения'
       });
       toast({
         title: 'Успешно',
@@ -1033,6 +1045,36 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                               onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
                             />
 
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Минимальное бронирование (часов)</label>
+                                <Input
+                                  type="number"
+                                  placeholder="1"
+                                  value={newRoom.min_hours || ''}
+                                  onChange={(e) => setNewRoom({ ...newRoom, min_hours: parseInt(e.target.value) || 1 })}
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">Методы оплаты</label>
+                              <Input
+                                placeholder="Наличные, банковская карта при заселении"
+                                value={newRoom.payment_methods}
+                                onChange={(e) => setNewRoom({ ...newRoom, payment_methods: e.target.value })}
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">Условия отмены</label>
+                              <Input
+                                placeholder="Бесплатная отмена за 1 час до заселения"
+                                value={newRoom.cancellation_policy}
+                                onChange={(e) => setNewRoom({ ...newRoom, cancellation_policy: e.target.value })}
+                              />
+                            </div>
+
                             <div>
                               <label className="text-sm font-medium mb-2 block">Фото номера (до 10 шт)</label>
                               
@@ -1261,6 +1303,36 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                   value={newRoom.description}
                   onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
                 />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Минимальное бронирование (часов)</label>
+                    <Input
+                      type="number"
+                      placeholder="1"
+                      value={newRoom.min_hours || ''}
+                      onChange={(e) => setNewRoom({ ...newRoom, min_hours: parseInt(e.target.value) || 1 })}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Методы оплаты</label>
+                  <Input
+                    placeholder="Наличные, банковская карта при заселении"
+                    value={newRoom.payment_methods}
+                    onChange={(e) => setNewRoom({ ...newRoom, payment_methods: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Условия отмены</label>
+                  <Input
+                    placeholder="Бесплатная отмена за 1 час до заселения"
+                    value={newRoom.cancellation_policy}
+                    onChange={(e) => setNewRoom({ ...newRoom, cancellation_policy: e.target.value })}
+                  />
+                </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">Фото номера (до 10 шт)</label>
