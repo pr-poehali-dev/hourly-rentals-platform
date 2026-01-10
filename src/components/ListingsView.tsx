@@ -259,9 +259,35 @@ export default function ListingsView({
                   от {listing.minHours}ч
                 </Badge>
               </div>
-              <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                Забронировать
-              </Button>
+              <div className="flex gap-2">
+                {listing.phone && (
+                  <Button 
+                    asChild
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                  >
+                    <a href={`tel:${listing.phone}`}>
+                      <Icon name="Phone" size={16} className="mr-1" />
+                      Позвонить
+                    </a>
+                  </Button>
+                )}
+                {listing.telegram && (
+                  <Button 
+                    asChild
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                  >
+                    <a href={listing.telegram.startsWith('http') ? listing.telegram : `https://t.me/${listing.telegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer">
+                      <Icon name="Send" size={16} className="mr-1" />
+                      Telegram
+                    </a>
+                  </Button>
+                )}
+                {!listing.phone && !listing.telegram && (
+                  <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                    Подробнее
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
                 ))}
