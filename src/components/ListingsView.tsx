@@ -202,9 +202,9 @@ export default function ListingsView({
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex-1 min-w-0">
-                  <div>
-                    <h4 className="font-bold text-lg mb-1">{listing.title}</h4>
-                    <div className="text-xs text-muted-foreground">
+                  <div className="group/title">
+                    <h4 className="font-bold text-lg mb-1 group-hover/title:text-purple-600 transition-colors">{listing.title}</h4>
+                    <div className="text-xs text-muted-foreground opacity-0 group-hover/title:opacity-100 transition-opacity">
                       Посмотреть все предложения отеля
                     </div>
                   </div>
