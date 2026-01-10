@@ -209,6 +209,32 @@ export default function Index() {
         onOpenChange={setDialogOpen}
         hotel={selectedHotel}
       />
+
+      <footer className="bg-white border-t border-purple-200 py-8 mt-16">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">⏰</div>
+              <div>
+                <div className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  120 минут
+                </div>
+                <p className="text-xs text-muted-foreground">© 2024 Все права защищены</p>
+              </div>
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-purple-600"
+              onClick={() => window.location.href = '/admin/login'}
+            >
+              <Icon name="ShieldCheck" size={16} className="mr-2" />
+              Вход для администратора
+            </Button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
