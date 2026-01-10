@@ -68,38 +68,22 @@ export default function HotelModal({ open, onOpenChange, hotel }: HotelModalProp
             )}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                <Icon name="MapPin" size={20} className="text-purple-600" />
-                Местоположение
-              </h3>
-              <div className="space-y-2 text-muted-foreground">
+          <div>
+            <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+              <Icon name="MapPin" size={20} className="text-purple-600" />
+              Местоположение
+            </h3>
+            <div className="space-y-2 text-muted-foreground">
+              <p className="flex items-center gap-2">
+                <Icon name="Building2" size={16} />
+                {hotel.city}, {hotel.district}
+              </p>
+              {hotel.metro !== '-' && (
                 <p className="flex items-center gap-2">
-                  <Icon name="Building2" size={16} />
-                  {hotel.city}, {hotel.district}
+                  <span className="text-blue-600">Ⓜ️</span>
+                  {hotel.metro}
                 </p>
-                {hotel.metro !== '-' && (
-                  <p className="flex items-center gap-2">
-                    <span className="text-blue-600">Ⓜ️</span>
-                    {hotel.metro}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                <Icon name="Sparkles" size={20} className="text-purple-600" />
-                Удобства
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {hotel.features.map(feature => (
-                  <Badge key={feature} variant="secondary" className="text-sm px-3 py-1">
-                    {feature}
-                  </Badge>
-                ))}
-              </div>
+              )}
             </div>
           </div>
 

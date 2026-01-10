@@ -249,11 +249,6 @@ export default function ListingsView({
                   ))}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-1 mb-3">
-                {listing.features.map(feature => (
-                  <Badge key={feature} variant="outline" className="text-xs">{feature}</Badge>
-                ))}
-              </div>
               <div className="flex-1"></div>
               <div className="flex items-center justify-between mb-3">
                 <div>
