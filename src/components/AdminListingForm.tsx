@@ -52,6 +52,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     features: [] as string[]
   });
   const [uploadingRoomPhotos, setUploadingRoomPhotos] = useState(false);
+  const [editingRoomIndex, setEditingRoomIndex] = useState<number | null>(null);
 
   const availableFeatures = [
     'WiFi',
@@ -291,6 +292,48 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
         features: []
       });
     }
+  };
+
+  const startEditRoom = (index: number) => {
+    const room = formData.rooms[index];
+    setNewRoom(room);
+    setEditingRoomIndex(index);
+  };
+
+  const saveEditedRoom = () => {
+    if (editingRoomIndex !== null && newRoom.type && newRoom.price > 0) {
+      const updatedRooms = [...formData.rooms];
+      updatedRooms[editingRoomIndex] = newRoom;
+      setFormData({
+        ...formData,
+        rooms: updatedRooms,
+      });
+      setEditingRoomIndex(null);
+      setNewRoom({ 
+        type: '', 
+        price: 0, 
+        description: '', 
+        images: [], 
+        square_meters: 0,
+        features: []
+      });
+      toast({
+        title: 'Успешно',
+        description: 'Категория обновлена',
+      });
+    }
+  };
+
+  const cancelEditRoom = () => {
+    setEditingRoomIndex(null);
+    setNewRoom({ 
+      type: '', 
+      price: 0, 
+      description: '', 
+      images: [], 
+      square_meters: 0,
+      features: []
+    });
   };
 
   const removeRoom = (index: number) => {
@@ -580,14 +623,24 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                         </Badge>
                       )}
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeRoom(index)}
-                    >
-                      <Icon name="Trash2" size={16} />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => startEditRoom(index)}
+                      >
+                        <Icon name="Edit" size={16} />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeRoom(index)}
+                      >
+                        <Icon name="Trash2" size={16} />
+                      </Button>
+                    </div>
                   </div>
                   
                   {room.images && room.images.length > 0 && (
@@ -614,8 +667,23 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                 </div>
               ))}
 
-              <div className="space-y-4 p-4 border rounded-lg bg-white">
-                <h3 className="font-semibold text-lg">Добавить категорию номера</h3>
+              <div className={`space-y-4 p-4 border rounded-lg transition-colors ${editingRoomIndex !== null ? 'bg-purple-50 border-purple-300' : 'bg-white'}`}>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-lg">
+                    {editingRoomIndex !== null ? 'Редактировать категорию' : 'Добавить категорию номера'}
+                  </h3>
+                  {editingRoomIndex !== null && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={cancelEditRoom}
+                    >
+                      <Icon name="X" size={16} className="mr-1" />
+                      Отмена
+                    </Button>
+                  )}
+                </div>
                 
                 <div className="grid grid-cols-2 gap-3">
                   <Input
@@ -708,10 +776,21 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                   </div>
                 </div>
 
-                <Button type="button" onClick={addRoom} variant="outline" className="w-full">
-                  <Icon name="Plus" size={18} className="mr-2" />
-                  Добавить категорию
-                </Button>
+                {editingRoomIndex !== null ? (
+                  <Button 
+                    type="button" 
+                    onClick={saveEditedRoom} 
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  >
+                    <Icon name="Check" size={18} className="mr-2" />
+                    Сохранить изменения
+                  </Button>
+                ) : (
+                  <Button type="button" onClick={addRoom} variant="outline" className="w-full">
+                    <Icon name="Plus" size={18} className="mr-2" />
+                    Добавить категорию
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
