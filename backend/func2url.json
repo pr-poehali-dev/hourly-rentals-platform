@@ -1,6 +1,6 @@
 {
-  "admin-auth": "https://functions.poehali.dev/f446518c-113b-41ed-8bdc-17ef6babda08",
+  "public-listings": "https://functions.poehali.dev/38a2f104-026e-40ea-80dc-0c07c014f868",
   "admin-upload": "https://functions.poehali.dev/22c1da70-b8a6-4b5e-81b8-330b559a8943",
   "admin-listings": "https://functions.poehali.dev/5dea57de-4652-4870-b39f-6b34e594bc21",
-  "public-listings": "https://functions.poehali.dev/38a2f104-026e-40ea-80dc-0c07c014f868"
+  "admin-auth": "https://functions.poehali.dev/f446518c-113b-41ed-8bdc-17ef6babda08"
 }

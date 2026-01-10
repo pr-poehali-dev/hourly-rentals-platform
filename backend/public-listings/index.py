@@ -35,9 +35,9 @@ def handler(event: dict, context) -> dict:
         cur.execute("""
             SELECT 
                 id, title, type, city, district, price, rating, reviews, 
-                auction, image_url as image, metro, metro_walk as "metroWalk", 
+                auction, image_url, logo_url, metro, metro_walk as "metroWalk", 
                 has_parking as "hasParking", features, lat, lng, 
-                min_hours as "minHours"
+                min_hours as "minHours", phone, telegram
             FROM listings 
             WHERE is_archived = false 
             ORDER BY auction ASC
