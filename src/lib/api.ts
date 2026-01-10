@@ -8,12 +8,27 @@ const API_URLS = {
 export const api = {
   // Авторизация
   login: async (email: string, password: string) => {
-    const response = await fetch(API_URLS.adminAuth, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    return response.json();
+    try {
+      const response = await fetch(API_URLS.adminAuth, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   },
 
   // Получение списка объектов
