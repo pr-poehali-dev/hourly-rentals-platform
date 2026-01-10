@@ -101,8 +101,11 @@ export default function Index() {
             <section className="mb-12 text-center animate-fade-in">
               <div className="max-w-4xl mx-auto">
                 <h2 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 bg-clip-text text-transparent leading-tight">
-                  ПОЧАСОВАЯ АРЕНДА<br/>ОТЕЛЕЙ И АПАРТАМЕНТОВ
+                  ПОЧАСОВАЯ АРЕНДА
                 </h2>
+                <h3 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 bg-clip-text text-transparent leading-tight">
+                  ОТЕЛЕЙ И АПАРТАМЕНТОВ
+                </h3>
                 <div className="flex flex-wrap justify-center gap-4 md:gap-8 mb-6">
                   <div className="flex items-center gap-2 text-lg md:text-xl font-semibold text-purple-700">
                     <Icon name="CheckCircle2" size={24} className="text-green-500" />
