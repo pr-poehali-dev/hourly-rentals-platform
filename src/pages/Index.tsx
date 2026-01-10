@@ -7,14 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import InteractiveMap from '@/components/InteractiveMap';
 
 const mockListings = [
-  { id: 1, title: 'Студия в центре Москвы', city: 'Москва', district: 'Арбат', price: 2500, rating: 4.9, reviews: 124, auction: 1, image: '🏙️', metro: 'Арбатская', features: ['Wi-Fi', 'Кондиционер', 'Кухня'] },
-  { id: 2, title: 'Апартаменты у Невского', city: 'Санкт-Петербург', district: 'Центральный', price: 2200, rating: 4.8, reviews: 89, auction: 2, image: '🏛️', metro: 'Невский проспект', features: ['Wi-Fi', 'Кухня', 'Джакузи'] },
-  { id: 3, title: 'Люкс на Красной Поляне', city: 'Сочи', district: 'Красная Поляна', price: 4500, rating: 5.0, reviews: 201, auction: 3, image: '🏔️', metro: '-', features: ['Вид на горы', 'Сауна', 'Парковка'] },
-  { id: 4, title: 'Уютная квартира на Тверской', city: 'Москва', district: 'ЦАО', price: 1800, rating: 4.7, reviews: 56, auction: 5, image: '🌆', metro: 'Тверская', features: ['Wi-Fi', 'Кондиционер'] },
-  { id: 5, title: 'Апарт-отель Деловой центр', city: 'Екатеринбург', district: 'Центр', price: 1600, rating: 4.6, reviews: 43, auction: 8, image: '🏢', metro: 'Площадь 1905 года', features: ['Фитнес', 'Кухня', 'Wi-Fi'] },
-  { id: 6, title: 'Панорамные апартаменты', city: 'Казань', district: 'Вахитовский', price: 2000, rating: 4.9, reviews: 78, auction: 4, image: '🌃', metro: 'Кремлёвская', features: ['Вид на Кремль', 'Wi-Fi', 'Паркинг'] },
+  { id: 1, title: 'Студия в центре Москвы', city: 'Москва', district: 'Арбат', price: 2500, rating: 4.9, reviews: 124, auction: 1, image: '🏙️', metro: 'Арбатская', features: ['Wi-Fi', 'Кондиционер', 'Кухня'], lat: 55.7522, lng: 37.6156 },
+  { id: 2, title: 'Апартаменты у Невского', city: 'Санкт-Петербург', district: 'Центральный', price: 2200, rating: 4.8, reviews: 89, auction: 2, image: '🏛️', metro: 'Невский проспект', features: ['Wi-Fi', 'Кухня', 'Джакузи'], lat: 59.9343, lng: 30.3351 },
+  { id: 3, title: 'Люкс на Красной Поляне', city: 'Сочи', district: 'Красная Поляна', price: 4500, rating: 5.0, reviews: 201, auction: 3, image: '🏔️', metro: '-', features: ['Вид на горы', 'Сауна', 'Парковка'], lat: 43.6850, lng: 40.2645 },
+  { id: 4, title: 'Уютная квартира на Тверской', city: 'Москва', district: 'ЦАО', price: 1800, rating: 4.7, reviews: 56, auction: 5, image: '🌆', metro: 'Тверская', features: ['Wi-Fi', 'Кондиционер'], lat: 55.7658, lng: 37.6050 },
+  { id: 5, title: 'Апарт-отель Деловой центр', city: 'Екатеринбург', district: 'Центр', price: 1600, rating: 4.6, reviews: 43, auction: 8, image: '🏢', metro: 'Площадь 1905 года', features: ['Фитнес', 'Кухня', 'Wi-Fi'], lat: 56.8389, lng: 60.6057 },
+  { id: 6, title: 'Панорамные апартаменты', city: 'Казань', district: 'Вахитовский', price: 2000, rating: 4.9, reviews: 78, auction: 4, image: '🌃', metro: 'Кремлёвская', features: ['Вид на Кремль', 'Wi-Fi', 'Паркинг'], lat: 55.7887, lng: 49.1221 },
 ];
 
 const cities = ['Все города', 'Москва', 'Санкт-Петербург', 'Сочи', 'Екатеринбург', 'Казань'];
@@ -23,6 +24,8 @@ export default function Index() {
   const [searchCity, setSearchCity] = useState('');
   const [selectedCity, setSelectedCity] = useState('Все города');
   const [activeTab, setActiveTab] = useState('catalog');
+  const [showMap, setShowMap] = useState(false);
+  const [selectedListing, setSelectedListing] = useState<number | null>(null);
 
   const filteredListings = mockListings
     .filter(l => selectedCity === 'Все города' || l.city === selectedCity)
@@ -126,9 +129,9 @@ export default function Index() {
                       <Icon name="Wifi" size={14} className="mr-1" />
                       С Wi-Fi
                     </Badge>
-                    <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100">
+                    <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100" onClick={() => setShowMap(!showMap)}>
                       <Icon name="Map" size={14} className="mr-1" />
-                      Показать на карте
+                      {showMap ? 'Показать списком' : 'Показать на карте'}
                     </Badge>
                   </div>
                 </div>
@@ -138,13 +141,76 @@ export default function Index() {
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold">Доступные объекты</h3>
-                <div className="flex items-center gap-2">
-                  <Icon name="TrendingUp" size={20} className="text-purple-600" />
-                  <span className="text-sm text-muted-foreground">Отсортировано по аукционной позиции</span>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Icon name="TrendingUp" size={20} className="text-purple-600" />
+                    <span className="text-sm text-muted-foreground">Отсортировано по аукционной позиции</span>
+                  </div>
+                  <Button 
+                    variant={showMap ? 'default' : 'outline'} 
+                    size="sm"
+                    onClick={() => setShowMap(!showMap)}
+                    className={showMap ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}
+                  >
+                    <Icon name={showMap ? 'List' : 'Map'} size={18} className="mr-2" />
+                    {showMap ? 'Списком' : 'На карте'}
+                  </Button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {showMap ? (
+                <div className="grid lg:grid-cols-2 gap-6">
+                  <div className="space-y-4 max-h-[700px] overflow-y-auto pr-2">
+                    {filteredListings.map((listing, index) => (
+                      <Card 
+                        key={listing.id} 
+                        className={`overflow-hidden cursor-pointer border-2 transition-all ${
+                          selectedListing === listing.id 
+                            ? 'border-purple-500 shadow-lg scale-[1.02]' 
+                            : 'border-purple-100 hover:border-purple-300'
+                        }`}
+                        onClick={() => setSelectedListing(listing.id)}
+                      >
+                        <div className="flex gap-4 p-4">
+                          <div className="relative w-24 h-24 flex-shrink-0">
+                            <div className="w-full h-full bg-gradient-to-br from-purple-200 to-pink-200 rounded-lg flex items-center justify-center text-3xl">
+                              {listing.image}
+                            </div>
+                            {listing.auction <= 3 && (
+                              <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-xs">
+                                ТОП-{listing.auction}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold mb-1 truncate">{listing.title}</h4>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                              <Icon name="MapPin" size={14} />
+                              <span className="truncate">{listing.city}, {listing.district}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="text-lg font-bold text-purple-600">{listing.price} ₽<span className="text-xs font-normal">/час</span></div>
+                              <div className="flex items-center gap-1">
+                                <Icon name="Star" size={14} className="text-orange-500 fill-orange-500" />
+                                <span className="font-bold text-sm">{listing.rating}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                  
+                  <div className="sticky top-24 h-[700px]">
+                    <InteractiveMap 
+                      listings={filteredListings} 
+                      selectedId={selectedListing}
+                      onSelectListing={setSelectedListing}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredListings.map((listing, index) => (
                   <Card key={listing.id} className="overflow-hidden hover-scale cursor-pointer border-2 border-purple-100 hover:border-purple-300 transition-all animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
                     <div className="relative">
@@ -203,7 +269,8 @@ export default function Index() {
                     </CardContent>
                   </Card>
                 ))}
-              </div>
+                </div>
+              )}
             </section>
           </>
         )}
