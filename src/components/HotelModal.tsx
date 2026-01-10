@@ -11,8 +11,6 @@ type Hotel = {
   city: string;
   district: string;
   price: number;
-  rating: number;
-  reviews: number;
   auction: number;
   image: string;
   logo?: string;

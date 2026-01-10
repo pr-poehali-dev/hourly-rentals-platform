@@ -19,8 +19,6 @@ type Listing = {
   city: string;
   district: string;
   price: number;
-  rating: number;
-  reviews: number;
   auction: number;
   image: string;
   logo?: string;
@@ -59,8 +57,7 @@ export default function ListingsView({
         return a.price - b.price;
       case 'price-desc':
         return b.price - a.price;
-      case 'rating':
-        return b.rating - a.rating;
+
       case 'auction':
       default:
         if (a.city !== b.city) {
@@ -98,7 +95,7 @@ export default function ListingsView({
                 <SelectItem value="auction">По позиции</SelectItem>
                 <SelectItem value="price-asc">Цена: по возрастанию</SelectItem>
                 <SelectItem value="price-desc">Цена: по убыванию</SelectItem>
-                <SelectItem value="rating">По рейтингу</SelectItem>
+
               </SelectContent>
             </Select>
           </div>
@@ -144,13 +141,7 @@ export default function ListingsView({
                       <Icon name="MapPin" size={14} />
                       <span className="truncate">{listing.city}, {listing.district}</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-lg font-bold text-purple-600">{listing.price} ₽<span className="text-xs font-normal">/час</span></div>
-                      <div className="flex items-center gap-1">
-                        <Icon name="Star" size={14} className="text-orange-500 fill-orange-500" />
-                        <span className="font-bold text-sm">{listing.rating}</span>
-                      </div>
-                    </div>
+                    <div className="text-lg font-bold text-purple-600">{listing.price} ₽<span className="text-xs font-normal">/час</span></div>
                   </div>
                 </div>
               </Card>

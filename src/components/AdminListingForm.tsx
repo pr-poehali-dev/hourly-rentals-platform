@@ -180,8 +180,6 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     city: listing?.city || '',
     district: listing?.district || '',
     price: listing?.price || 0,
-    rating: listing?.rating || 0,
-    reviews: listing?.reviews || 0,
     auction: listing?.auction || 999,
     image_url: listing?.image_url || '',
     logo_url: listing?.logo_url || '',

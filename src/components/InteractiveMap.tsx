@@ -10,7 +10,6 @@ interface Listing {
   auction: number;
   lat: number;
   lng: number;
-  rating: number;
 }
 
 interface InteractiveMapProps {
