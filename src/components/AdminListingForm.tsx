@@ -191,6 +191,8 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     lng: listing?.lng || 0,
     min_hours: listing?.min_hours || 1,
     rooms: listing?.rooms || [],
+    phone: listing?.phone || '',
+    telegram: listing?.telegram || '',
   });
 
   const [newRoom, setNewRoom] = useState({ 
@@ -866,6 +868,45 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                     onChange={(e) => setFormData({ ...formData, metro_walk: parseInt(e.target.value) })}
                   />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Контакты для гостей</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  <Icon name="Phone" size={16} className="inline mr-1" />
+                  Телефон для связи
+                </label>
+                <Input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+7 (999) 123-45-67"
+                  required
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Гости смогут позвонить по этому номеру
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  <Icon name="Send" size={16} className="inline mr-1" />
+                  Telegram (опционально)
+                </label>
+                <Input
+                  value={formData.telegram}
+                  onChange={(e) => setFormData({ ...formData, telegram: e.target.value })}
+                  placeholder="@hotel_name или https://t.me/hotel_name"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Укажите username (@hotel_name) или ссылку на Telegram для кнопки "Написать в Telegram"
+                </p>
               </div>
             </CardContent>
           </Card>

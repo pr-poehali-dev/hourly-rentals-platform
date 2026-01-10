@@ -20,6 +20,8 @@ type Hotel = {
   lng: number;
   minHours: number;
   rooms: { type: string; price: number }[];
+  phone?: string;
+  telegram?: string;
 };
 
 interface HotelModalProps {
@@ -81,21 +83,6 @@ export default function HotelModal({ open, onOpenChange, hotel }: HotelModalProp
                 )}
               </div>
             </div>
-
-            <div>
-              <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                <Icon name="Star" size={20} className="text-orange-500 fill-orange-500" />
-                Рейтинг
-              </h3>
-              <div className="flex items-center gap-4">
-                <div className="text-4xl font-bold text-purple-600">{hotel.rating}</div>
-                <div className="text-muted-foreground">
-                  <div className="font-semibold">{hotel.reviews} отзывов</div>
-                  <div className="text-sm">Отличные оценки</div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           <div>
             <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
@@ -172,18 +159,28 @@ export default function HotelModal({ open, onOpenChange, hotel }: HotelModalProp
           </div>
 
           <div className="flex gap-3">
-            <Button 
-              className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg py-6"
-            >
-              <Icon name="Phone" size={20} className="mr-2" />
-              Позвонить владельцу
-            </Button>
-            <Button 
-              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-lg py-6"
-            >
-              <Icon name="MessageCircle" size={20} className="mr-2" />
-              Написать в WhatsApp
-            </Button>
+            {hotel.phone && (
+              <Button 
+                asChild
+                className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg py-6"
+              >
+                <a href={`tel:${hotel.phone}`}>
+                  <Icon name="Phone" size={20} className="mr-2" />
+                  Позвонить
+                </a>
+              </Button>
+            )}
+            {hotel.telegram && (
+              <Button 
+                asChild
+                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-lg py-6"
+              >
+                <a href={hotel.telegram.startsWith('http') ? hotel.telegram : `https://t.me/${hotel.telegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer">
+                  <Icon name="Send" size={20} className="mr-2" />
+                  Написать в Telegram
+                </a>
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>
