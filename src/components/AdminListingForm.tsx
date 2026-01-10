@@ -37,9 +37,10 @@ interface SortableRoomItemProps {
   onEdit: (index: number) => void;
   onRemove: (index: number) => void;
   onDuplicate: (index: number) => void;
+  isEditing: boolean;
 }
 
-function SortableRoomItem({ room, index, onEdit, onRemove, onDuplicate }: SortableRoomItemProps) {
+function SortableRoomItem({ room, index, onEdit, onRemove, onDuplicate, isEditing }: SortableRoomItemProps) {
   const {
     attributes,
     listeners,
@@ -59,7 +60,11 @@ function SortableRoomItem({ room, index, onEdit, onRemove, onDuplicate }: Sortab
     <div
       ref={setNodeRef}
       style={style}
-      className="p-4 border rounded-lg bg-purple-50"
+      className={`p-4 border rounded-lg transition-all ${
+        isEditing 
+          ? 'bg-purple-100 border-purple-400 border-2 shadow-md' 
+          : 'bg-purple-50 border-gray-200'
+      }`}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-start gap-3 flex-1">
@@ -71,7 +76,15 @@ function SortableRoomItem({ room, index, onEdit, onRemove, onDuplicate }: Sortab
             <Icon name="GripVertical" size={20} />
           </div>
           <div>
-            <div className="font-semibold text-lg">{room.type}</div>
+            <div className="flex items-center gap-2">
+              <div className="font-semibold text-lg">{room.type}</div>
+              {isEditing && (
+                <Badge variant="default" className="bg-purple-600">
+                  <Icon name="Edit" size={12} className="mr-1" />
+                  Редактируется
+                </Badge>
+              )}
+            </div>
             <div className="text-purple-600 font-bold text-xl">{room.price} ₽/час</div>
             {room.square_meters > 0 && (
               <Badge variant="secondary" className="mt-1">
@@ -882,19 +895,17 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                     items={formData.rooms.map((_: any, idx: number) => `room-${idx}`)}
                     strategy={verticalListSortingStrategy}
                   >
-                    {formData.rooms.map((room: any, index: number) => {
-                      if (editingRoomIndex === index) return null;
-                      return (
-                        <SortableRoomItem
-                          key={`room-${index}`}
-                          room={room}
-                          index={index}
-                          onEdit={startEditRoom}
-                          onRemove={removeRoom}
-                          onDuplicate={duplicateRoom}
-                        />
-                      );
-                    })}
+                    {formData.rooms.map((room: any, index: number) => (
+                      <SortableRoomItem
+                        key={`room-${index}`}
+                        room={room}
+                        index={index}
+                        onEdit={startEditRoom}
+                        onRemove={removeRoom}
+                        onDuplicate={duplicateRoom}
+                        isEditing={editingRoomIndex === index}
+                      />
+                    ))}
                   </SortableContext>
                 </DndContext>
               ) : (
