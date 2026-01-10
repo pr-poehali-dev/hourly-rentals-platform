@@ -1,0 +1,31 @@
+{
+  "tests": [
+    {
+      "name": "Test login with invalid credentials",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "email": "wrong@example.com",
+        "password": "wrongpass"
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test login without email",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "password": "test123"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
