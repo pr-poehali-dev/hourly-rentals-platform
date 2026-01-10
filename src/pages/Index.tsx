@@ -23,6 +23,7 @@ export default function Index() {
   const [selectedCity, setSelectedCity] = useState('Все города');
   const [selectedType, setSelectedType] = useState('all');
   const [hasParking, setHasParking] = useState(false);
+  const [minHours, setMinHours] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('catalog');
   const [showMap, setShowMap] = useState(false);
   const [selectedListing, setSelectedListing] = useState<number | null>(null);
@@ -33,6 +34,7 @@ export default function Index() {
     .filter(l => selectedCity === 'Все города' || l.city === selectedCity)
     .filter(l => selectedType === 'all' || l.type === selectedType)
     .filter(l => !hasParking || l.hasParking)
+    .filter(l => minHours === null || l.minHours <= minHours)
     .filter(l => l.title.toLowerCase().includes(searchCity.toLowerCase()) || l.city.toLowerCase().includes(searchCity.toLowerCase()))
     .sort((a, b) => a.auction - b.auction);
 
@@ -114,6 +116,8 @@ export default function Index() {
               setShowMap={setShowMap}
               hasParking={hasParking}
               setHasParking={setHasParking}
+              minHours={minHours}
+              setMinHours={setMinHours}
             />
             <ListingsView
               filteredListings={filteredListings}

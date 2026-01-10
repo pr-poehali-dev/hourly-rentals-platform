@@ -16,6 +16,8 @@ interface SearchHeroProps {
   setShowMap: (value: boolean) => void;
   hasParking: boolean;
   setHasParking: (value: boolean) => void;
+  minHours: number | null;
+  setMinHours: (value: number | null) => void;
 }
 
 export default function SearchHero({
@@ -30,6 +32,8 @@ export default function SearchHero({
   setShowMap,
   hasParking,
   setHasParking,
+  minHours,
+  setMinHours,
 }: SearchHeroProps) {
   return (
     <section className="mb-12 text-center animate-fade-in">
@@ -126,6 +130,30 @@ export default function SearchHero({
             >
               <Icon name="Car" size={14} className="mr-1" />
               С парковкой
+            </Badge>
+            <Badge 
+              variant={minHours === 2 ? "default" : "secondary"} 
+              className={`cursor-pointer ${minHours === 2 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'hover:bg-purple-100'}`}
+              onClick={() => setMinHours(minHours === 2 ? null : 2)}
+            >
+              <Icon name="Clock" size={14} className="mr-1" />
+              От 2 часов
+            </Badge>
+            <Badge 
+              variant={minHours === 3 ? "default" : "secondary"} 
+              className={`cursor-pointer ${minHours === 3 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'hover:bg-purple-100'}`}
+              onClick={() => setMinHours(minHours === 3 ? null : 3)}
+            >
+              <Icon name="Clock" size={14} className="mr-1" />
+              От 3 часов
+            </Badge>
+            <Badge 
+              variant={minHours === 4 ? "default" : "secondary"} 
+              className={`cursor-pointer ${minHours === 4 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'hover:bg-purple-100'}`}
+              onClick={() => setMinHours(minHours === 4 ? null : 4)}
+            >
+              <Icon name="Clock" size={14} className="mr-1" />
+              От 4 часов
             </Badge>
             <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100" onClick={() => setShowMap(!showMap)}>
               <Icon name="Map" size={14} className="mr-1" />
