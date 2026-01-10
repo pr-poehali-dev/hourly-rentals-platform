@@ -194,6 +194,51 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
   const [editingRoomIndex, setEditingRoomIndex] = useState<number | null>(null);
   const [draggingPhotoIndex, setDraggingPhotoIndex] = useState<number | null>(null);
 
+  const roomTemplates = [
+    {
+      name: 'Стандарт',
+      type: 'Стандарт',
+      description: 'Комфортный номер с базовым набором удобств',
+      square_meters: 18,
+      features: ['WiFi', 'Двуспальная кровать', 'Смарт ТВ', 'Кондиционер', 'Душевая кабина', 'Фен', 'Холодильник', 'Чайник'],
+    },
+    {
+      name: 'Комфорт',
+      type: 'Комфорт',
+      description: 'Улучшенный номер с расширенным набором удобств',
+      square_meters: 25,
+      features: ['WiFi', 'Двуспальная кровать', 'Смарт ТВ', 'Кондиционер', 'Душевая кабина', 'Фен', 'Халаты', 'Тапочки', 'Холодильник', 'Микроволновка', 'Чайник', 'Посуда', 'Сейф'],
+    },
+    {
+      name: 'Люкс',
+      type: 'Люкс',
+      description: 'Роскошный номер премиум класса',
+      square_meters: 35,
+      features: ['WiFi', 'Двуспальная кровать', 'Смарт ТВ', 'Кондиционер', 'Джакузи', 'Фен', 'Халаты', 'Тапочки', 'Холодильник', 'Микроволновка', 'Чайник', 'Посуда', 'Сейф', 'Зеркала', 'Музыкальная система'],
+    },
+    {
+      name: 'Студия',
+      type: 'Студия',
+      description: 'Просторный номер с кухонной зоной',
+      square_meters: 30,
+      features: ['WiFi', 'Двуспальная кровать', 'Смарт ТВ', 'Кондиционер', 'Душевая кабина', 'Фен', 'Холодильник', 'Микроволновка', 'Чайник', 'Посуда', 'Обеденный стол', 'Диван'],
+    },
+    {
+      name: 'Романтик',
+      type: 'Романтик',
+      description: 'Номер с романтической атмосферой для пар',
+      square_meters: 28,
+      features: ['WiFi', 'Двуспальная кровать', 'Смарт ТВ', 'Кондиционер', 'Джакузи', 'Фен', 'Халаты', 'Тапочки', 'Холодильник', 'Чайник', 'Зеркала', 'Музыкальная система', 'Ароматерапия'],
+    },
+    {
+      name: 'VIP',
+      type: 'VIP',
+      description: 'Эксклюзивный номер с максимальным комфортом',
+      square_meters: 45,
+      features: ['WiFi', 'Двуспальная кровать', 'Смарт ТВ', 'Кондиционер', 'Джакузи', 'Фен', 'Халаты', 'Тапочки', 'Холодильник', 'Микроволновка', 'Чайник', 'Посуда', 'Сейф', 'Зеркала', 'Музыкальная система', 'PlayStation', 'Настольные игры', 'Диван', 'Обеденный стол'],
+    },
+  ];
+
   const availableFeatures = [
     'WiFi',
     'Двуспальная кровать',
@@ -546,6 +591,25 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     });
   };
 
+  const applyTemplate = (templateName: string) => {
+    const template = roomTemplates.find(t => t.name === templateName);
+    if (!template) return;
+
+    setNewRoom({
+      type: template.type,
+      price: 0,
+      description: template.description,
+      images: newRoom.images,
+      square_meters: template.square_meters,
+      features: template.features,
+    });
+
+    toast({
+      title: 'Шаблон применён',
+      description: `Загружены настройки для категории "${template.name}"`,
+    });
+  };
+
   const removeRoom = (index: number) => {
     setFormData({
       ...formData,
@@ -888,6 +952,37 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                       Отмена
                     </Button>
                   )}
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Icon name="Sparkles" size={18} className="text-purple-600" />
+                    <label className="text-sm font-semibold">Выберите готовый шаблон</label>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {roomTemplates.map((template) => (
+                      <Button
+                        key={template.name}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => applyTemplate(template.name)}
+                        className="h-auto py-3 flex flex-col items-start gap-1 hover:bg-purple-100 hover:border-purple-400 transition-all relative group"
+                        title={`${template.features.length} удобств`}
+                      >
+                        <span className="font-semibold text-sm">{template.name}</span>
+                        <div className="flex items-center gap-2 w-full">
+                          <span className="text-xs text-muted-foreground">{template.square_meters} м²</span>
+                          <Badge variant="secondary" className="text-xs h-4 px-1">
+                            {template.features.length}
+                          </Badge>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Шаблон загрузит настройки, площадь и удобства. Цена и фото не изменятся.
+                  </p>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3">
