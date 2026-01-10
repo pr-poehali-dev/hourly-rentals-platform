@@ -485,20 +485,6 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     setDraggingPhotoIndex(null);
   };
 
-  const toggleFeature = (feature: string) => {
-    if (formData.features.includes(feature)) {
-      setFormData({
-        ...formData,
-        features: formData.features.filter((f: string) => f !== feature),
-      });
-    } else {
-      setFormData({
-        ...formData,
-        features: [...formData.features, feature],
-      });
-    }
-  };
-
   const toggleNewRoomFeature = (feature: string) => {
     if (newRoom.features.includes(feature)) {
       setNewRoom({
@@ -866,30 +852,6 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                     onChange={(e) => setFormData({ ...formData, lng: parseFloat(e.target.value) })}
                   />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Удобства</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {availableFeatures.map((feature) => (
-                  <label
-                    key={feature}
-                    className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-purple-50 transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.features && formData.features.includes(feature)}
-                      onChange={() => toggleFeature(feature)}
-                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                    />
-                    <span className="text-sm font-medium">{feature}</span>
-                  </label>
-                ))}
               </div>
             </CardContent>
           </Card>
