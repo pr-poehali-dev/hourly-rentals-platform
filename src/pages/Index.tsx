@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InteractiveMap from '@/components/InteractiveMap';
 
@@ -26,6 +27,8 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState('catalog');
   const [showMap, setShowMap] = useState(false);
   const [selectedListing, setSelectedListing] = useState<number | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedHotel, setSelectedHotel] = useState<typeof mockListings[0] | null>(null);
 
   const filteredListings = mockListings
     .filter(l => selectedCity === 'Все города' || l.city === selectedCity)
@@ -235,7 +238,15 @@ export default function Index() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredListings.map((listing, index) => (
-                  <Card key={listing.id} className="group overflow-hidden cursor-pointer border-2 border-purple-100 hover:border-purple-300 transition-all animate-fade-in hover:shadow-xl" style={{ animationDelay: `${index * 100}ms` }}>
+                  <Card 
+                    key={listing.id} 
+                    className="group overflow-hidden cursor-pointer border-2 border-purple-100 hover:border-purple-300 transition-all animate-fade-in hover:shadow-xl" 
+                    style={{ animationDelay: `${index * 100}ms` }}
+                    onClick={() => {
+                      setSelectedHotel(listing);
+                      setDialogOpen(true);
+                    }}
+                  >
                     <div className="relative overflow-hidden">
                       <div className="h-48 bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center text-6xl group-hover:scale-110 transition-transform duration-300">
                         {listing.image}
@@ -379,6 +390,160 @@ export default function Index() {
 
         {activeTab === 'support' && (
           <div className="max-w-4xl mx-auto animate-fade-in">
+            <h2 className="text-4xl font-bold mb-6">Поддержка</h2>
+            <Card className="p-8">
+              <p className="text-lg">Свяжитесь с нами для получения помощи</p>
+            </Card>
+          </div>
+        )}
+      </main>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {selectedHotel && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  {selectedHotel.title}
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-6 mt-4">
+                <div className="relative">
+                  <div className="h-64 bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center text-9xl rounded-xl">
+                    {selectedHotel.image}
+                  </div>
+                  {selectedHotel.auction <= 3 && (
+                    <Badge className="absolute top-4 right-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg px-4 py-2">
+                      <Icon name="Trophy" size={20} className="mr-2" />
+                      ТОП-{selectedHotel.auction}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+                      <Icon name="MapPin" size={20} className="text-purple-600" />
+                      Местоположение
+                    </h3>
+                    <div className="space-y-2 text-muted-foreground">
+                      <p className="flex items-center gap-2">
+                        <Icon name="Building2" size={16} />
+                        {selectedHotel.city}, {selectedHotel.district}
+                      </p>
+                      {selectedHotel.metro !== '-' && (
+                        <p className="flex items-center gap-2">
+                          <span className="text-blue-600">Ⓜ️</span>
+                          {selectedHotel.metro}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+                      <Icon name="Star" size={20} className="text-orange-500 fill-orange-500" />
+                      Рейтинг
+                    </h3>
+                    <div className="flex items-center gap-4">
+                      <div className="text-4xl font-bold text-purple-600">{selectedHotel.rating}</div>
+                      <div className="text-muted-foreground">
+                        <div className="font-semibold">{selectedHotel.reviews} отзывов</div>
+                        <div className="text-sm">Отличные оценки</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+                    <Icon name="Sparkles" size={20} className="text-purple-600" />
+                    Удобства
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedHotel.features.map(feature => (
+                      <Badge key={feature} variant="secondary" className="text-sm px-3 py-1">
+                        {feature}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Icon name="Bed" size={20} className="text-purple-600" />
+                    Категории номеров
+                  </h3>
+                  <div className="space-y-3">
+                    {selectedHotel.rooms.map((room, idx) => (
+                      <div key={idx} className="border-2 border-purple-100 rounded-xl p-4 hover:border-purple-300 hover:shadow-lg transition-all">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h4 className="text-lg font-bold">{room.type}</h4>
+                            <p className="text-sm text-muted-foreground">Комфортабельный номер</p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-3xl font-bold text-purple-600">{room.price} ₽</div>
+                            <div className="text-sm text-muted-foreground">за час</div>
+                          </div>
+                        </div>
+                        <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                          <Icon name="Calendar" size={18} className="mr-2" />
+                          Забронировать {room.type}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-100">
+                  <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+                    <Icon name="Info" size={20} className="text-purple-600" />
+                    Важная информация
+                  </h3>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <Icon name="CheckCircle2" size={16} className="text-green-500 mt-0.5" />
+                      <span>Минимальное время бронирования — 1 час</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="CheckCircle2" size={16} className="text-green-500 mt-0.5" />
+                      <span>Оплата наличными или картой при заселении</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="CheckCircle2" size={16} className="text-green-500 mt-0.5" />
+                      <span>Бесплатная отмена за 1 час до заселения</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="CheckCircle2" size={16} className="text-green-500 mt-0.5" />
+                      <span>Круглосуточная поддержка клиентов</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button 
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg py-6"
+                  >
+                    <Icon name="Phone" size={20} className="mr-2" />
+                    Позвонить владельцу
+                  </Button>
+                  <Button 
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-lg py-6"
+                  >
+                    <Icon name="MessageCircle" size={20} className="mr-2" />
+                    Написать в WhatsApp
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
             <h2 className="text-4xl font-bold mb-6">Поддержка</h2>
             <Card className="p-8">
               <div className="space-y-6">
