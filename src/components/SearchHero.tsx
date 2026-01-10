@@ -1,0 +1,127 @@
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Icon from '@/components/ui/icon';
+
+interface SearchHeroProps {
+  searchCity: string;
+  setSearchCity: (value: string) => void;
+  selectedType: string;
+  setSelectedType: (value: string) => void;
+  selectedCity: string;
+  setSelectedCity: (value: string) => void;
+  cities: string[];
+  showMap: boolean;
+  setShowMap: (value: boolean) => void;
+}
+
+export default function SearchHero({
+  searchCity,
+  setSearchCity,
+  selectedType,
+  setSelectedType,
+  selectedCity,
+  setSelectedCity,
+  cities,
+  showMap,
+  setShowMap,
+}: SearchHeroProps) {
+  return (
+    <section className="mb-12 text-center animate-fade-in">
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 bg-clip-text text-transparent leading-tight">
+          ПОЧАСОВАЯ АРЕНДА
+        </h2>
+        <h3 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 bg-clip-text text-transparent leading-tight">
+          ОТЕЛЕЙ И АПАРТАМЕНТОВ
+        </h3>
+        <div className="flex flex-wrap justify-center gap-4 md:gap-8 mb-6">
+          <div className="flex items-center gap-2 text-lg md:text-xl font-semibold text-purple-700">
+            <Icon name="CheckCircle2" size={24} className="text-green-500" />
+            <span>БЕЗ ПОСРЕДНИКОВ</span>
+          </div>
+          <div className="flex items-center gap-2 text-lg md:text-xl font-semibold text-purple-700">
+            <Icon name="CheckCircle2" size={24} className="text-green-500" />
+            <span>БЕЗ РЕГИСТРАЦИИ НА САЙТЕ</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-center gap-3 md:gap-6 mb-8 text-base md:text-lg font-medium">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center justify-center font-bold">1</div>
+            <span>ВЫБИРАЕТЕ</span>
+          </div>
+          <Icon name="ArrowRight" size={20} className="text-purple-600" />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center justify-center font-bold">2</div>
+            <span>СВЯЗЫВАЕТЕСЬ</span>
+          </div>
+          <Icon name="ArrowRight" size={20} className="text-purple-600" />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center justify-center font-bold">3</div>
+            <span>БРОНИРУЕТЕ</span>
+          </div>
+        </div>
+
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-purple-100">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Icon name="Search" size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Город, адрес, метро..."
+                  className="pl-10 h-12 text-lg border-purple-200"
+                  value={searchCity}
+                  onChange={(e) => setSearchCity(e.target.value)}
+                />
+              </div>
+            </div>
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger className="w-full md:w-[180px] h-12 border-purple-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все типы</SelectItem>
+                <SelectItem value="hotel">Отели</SelectItem>
+                <SelectItem value="apartment">Апартаменты</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedCity} onValueChange={setSelectedCity}>
+              <SelectTrigger className="w-full md:w-[200px] h-12 border-purple-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {cities.map(city => (
+                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="lg" className="h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+              <Icon name="Search" size={20} className="mr-2" />
+              Найти
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100">
+              <Icon name="MapPin" size={14} className="mr-1" />
+              Рядом с метро
+            </Badge>
+            <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100">
+              <Icon name="Star" size={14} className="mr-1" />
+              Высокий рейтинг
+            </Badge>
+            <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100">
+              <Icon name="Wifi" size={14} className="mr-1" />
+              С Wi-Fi
+            </Badge>
+            <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100" onClick={() => setShowMap(!showMap)}>
+              <Icon name="Map" size={14} className="mr-1" />
+              {showMap ? 'Показать списком' : 'Показать на карте'}
+            </Badge>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
