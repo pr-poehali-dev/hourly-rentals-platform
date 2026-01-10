@@ -198,17 +198,14 @@ export default function ListingsView({
               <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold">
                 🎯 {listing.city}: #{getPositionInCity(listing, index)}
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
-                <span className="text-white font-bold text-lg animate-fade-in">Посмотреть все предложения</span>
-              </div>
             </div>
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex-1 min-w-0">
-                  <div className="group/title relative">
-                    <h4 className="font-bold text-lg mb-1 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-pink-600 group-hover:bg-clip-text transition-all duration-300">{listing.title}</h4>
-                    <div className="opacity-0 group-hover/title:opacity-100 transition-opacity text-xs text-purple-600 font-semibold">
-                      Смотреть все предложения отеля
+                  <div>
+                    <h4 className="font-bold text-lg mb-1">{listing.title}</h4>
+                    <div className="text-xs text-muted-foreground">
+                      Посмотреть все предложения отеля
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
