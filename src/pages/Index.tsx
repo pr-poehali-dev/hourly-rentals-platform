@@ -52,7 +52,7 @@ export default function Index() {
               <div className="text-4xl">⏰</div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  ЧасАренда
+                  120 минут
                 </h1>
                 <p className="text-xs text-muted-foreground">Почасовая аренда по всей России</p>
               </div>
@@ -132,10 +132,10 @@ export default function Index() {
 
         {activeTab === 'about' && (
           <div className="max-w-4xl mx-auto animate-fade-in">
-            <h2 className="text-4xl font-bold mb-6">О платформе ЧасАренда</h2>
+            <h2 className="text-4xl font-bold mb-6">О платформе 120 минут</h2>
             <Card className="p-8">
               <p className="text-lg mb-4">
-                ЧасАренда — крупнейшая всероссийская платформа почасовой аренды отелей и апартаментов.
+                120 минут — крупнейшая всероссийская платформа почасовой аренды отелей и апартаментов.
               </p>
               <div className="grid md:grid-cols-3 gap-6 mt-8">
                 <div className="text-center">
