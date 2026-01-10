@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -18,15 +19,9 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await api.login(email, password);
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (data.token) {
         localStorage.setItem('adminToken', data.token);
         toast({
           title: 'Успешный вход',
