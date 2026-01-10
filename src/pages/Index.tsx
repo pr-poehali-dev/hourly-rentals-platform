@@ -66,7 +66,22 @@ export default function Index() {
                   <SheetHeader>
                     <SheetTitle>Личный кабинет</SheetTitle>
                   </SheetHeader>
-                  <AdminPanel />
+                  <div className="mt-6 space-y-4">
+                    <Card>
+                      <CardContent className="pt-6">
+                        <div className="text-center">
+                          <div className="text-4xl mb-3">👤</div>
+                          <h3 className="font-bold text-lg mb-2">Войдите в аккаунт</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Управляйте своими объектами и бронированиями
+                          </p>
+                          <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                            Войти
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </SheetContent>
               </Sheet>
             </nav>
