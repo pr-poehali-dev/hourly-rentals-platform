@@ -17,8 +17,10 @@ interface AdminListingFormProps {
 export default function AdminListingForm({ listing, token, onClose }: AdminListingFormProps) {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const [formData, setFormData] = useState({
     title: listing?.title || '',
@@ -30,6 +32,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     reviews: listing?.reviews || 0,
     auction: listing?.auction || 999,
     image_url: listing?.image_url || '',
+    logo_url: listing?.logo_url || '',
     metro: listing?.metro || '',
     metro_walk: listing?.metro_walk || 0,
     has_parking: listing?.has_parking || false,
@@ -143,6 +146,39 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
       });
     } finally {
       setUploadingPhoto(false);
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64 = event.target?.result?.toString().split(',')[1];
+        if (!base64) return;
+
+        const result = await api.uploadPhoto(token, base64, file.type);
+        
+        if (result.url) {
+          setFormData({ ...formData, logo_url: result.url });
+          toast({
+            title: 'Успешно',
+            description: 'Логотип загружен',
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить логотип',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
@@ -360,37 +396,77 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium mb-2 block">Главное фото</label>
-                <div className="flex items-center gap-4">
-                  {formData.image_url && (
-                    <img src={formData.image_url} alt="Preview" className="w-32 h-32 object-cover rounded" />
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handlePhotoUpload(e)}
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingPhoto}
-                  >
-                    {uploadingPhoto ? (
-                      <>
-                        <Icon name="Loader2" size={18} className="mr-2 animate-spin" />
-                        Загрузка...
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="Upload" size={18} className="mr-2" />
-                        Загрузить фото
-                      </>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Главное фото</label>
+                  <div className="flex flex-col gap-3">
+                    {formData.image_url && (
+                      <img src={formData.image_url} alt="Preview" className="w-full h-32 object-cover rounded" />
                     )}
-                  </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handlePhotoUpload(e)}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingPhoto}
+                      className="w-full"
+                    >
+                      {uploadingPhoto ? (
+                        <>
+                          <Icon name="Loader2" size={18} className="mr-2 animate-spin" />
+                          Загрузка...
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="Upload" size={18} className="mr-2" />
+                          Загрузить фото
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Логотип (PNG с прозрачностью)</label>
+                  <div className="flex flex-col gap-3">
+                    {formData.logo_url && (
+                      <div className="w-full h-32 border rounded flex items-center justify-center bg-gray-50">
+                        <img src={formData.logo_url} alt="Logo" className="max-w-full max-h-full object-contain p-2" />
+                      </div>
+                    )}
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/png,image/svg+xml,image/webp"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={uploadingLogo}
+                      className="w-full"
+                    >
+                      {uploadingLogo ? (
+                        <>
+                          <Icon name="Loader2" size={18} className="mr-2 animate-spin" />
+                          Загрузка...
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="Upload" size={18} className="mr-2" />
+                          Загрузить логотип
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
 

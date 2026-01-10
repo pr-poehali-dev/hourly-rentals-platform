@@ -15,6 +15,7 @@ type Hotel = {
   reviews: number;
   auction: number;
   image: string;
+  logo?: string;
   metro: string;
   features: string[];
   lat: number;
@@ -38,9 +39,16 @@ export default function HotelModal({ open, onOpenChange, hotel }: HotelModalProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            {hotel.title}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              {hotel.title}
+            </DialogTitle>
+            {hotel.logo && (
+              <div className="w-20 h-20 border rounded-lg bg-white p-2 flex items-center justify-center flex-shrink-0">
+                <img src={hotel.logo} alt={`${hotel.title} logo`} className="max-w-full max-h-full object-contain" />
+              </div>
+            )}
+          </div>
         </DialogHeader>
         
         <div className="space-y-6 mt-4">

@@ -151,17 +151,24 @@ export default function AdminPanel() {
             {listings.map((listing) => (
               <Card key={listing.id} className={listing.is_archived ? 'opacity-60' : ''}>
                 <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
                       <CardTitle className="text-xl mb-2">{listing.title}</CardTitle>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Icon name="MapPin" size={14} />
                         <span>{listing.city}, {listing.district}</span>
                       </div>
                     </div>
-                    {listing.is_archived && (
-                      <Badge variant="secondary">Архив</Badge>
-                    )}
+                    <div className="flex flex-col items-end gap-2">
+                      {listing.logo_url && (
+                        <div className="w-12 h-12 border rounded bg-white p-1 flex items-center justify-center">
+                          <img src={listing.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
+                        </div>
+                      )}
+                      {listing.is_archived && (
+                        <Badge variant="secondary">Архив</Badge>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>

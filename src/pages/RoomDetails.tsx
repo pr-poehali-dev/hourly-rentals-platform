@@ -19,6 +19,7 @@ export default function RoomDetails() {
         title: 'Luxury Suite 120',
         city: 'Москва',
         district: 'Центральный',
+        logo: '',
         rooms: [
           {
             type: 'Стандарт',
@@ -112,10 +113,15 @@ export default function RoomDetails() {
             <Button variant="outline" size="icon" onClick={() => navigate(`/listing/${listingId}`)}>
               <Icon name="ArrowLeft" size={20} />
             </Button>
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold">{listing.title}</h1>
               <p className="text-sm text-muted-foreground">{listing.city}, {listing.district}</p>
             </div>
+            {listing.logo && (
+              <div className="w-16 h-16 border rounded-lg bg-white p-1 flex items-center justify-center">
+                <img src={listing.logo} alt={`${listing.title} logo`} className="max-w-full max-h-full object-contain" />
+              </div>
+            )}
           </div>
         </div>
       </header>

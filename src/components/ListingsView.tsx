@@ -23,6 +23,7 @@ type Listing = {
   reviews: number;
   auction: number;
   image: string;
+  logo?: string;
   metro: string;
   metroWalk: number;
   hasParking: boolean;
@@ -175,8 +176,8 @@ export default function ListingsView({
               </div>
             </div>
             <CardHeader className="pb-3">
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="flex-1 min-w-0">
                   <div className="group/title relative">
                     <h4 className="font-bold text-lg mb-1 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-pink-600 group-hover:bg-clip-text transition-all duration-300">{listing.title}</h4>
                     <div className="opacity-0 group-hover/title:opacity-100 transition-opacity text-xs text-purple-600 font-semibold">
@@ -202,6 +203,11 @@ export default function ListingsView({
                     </div>
                   )}
                 </div>
+                {listing.logo && (
+                  <div className="flex-shrink-0 w-16 h-16 border rounded-lg bg-white p-1 flex items-center justify-center">
+                    <img src={listing.logo} alt={`${listing.title} logo`} className="max-w-full max-h-full object-contain" />
+                  </div>
+                )}
               </div>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col">
