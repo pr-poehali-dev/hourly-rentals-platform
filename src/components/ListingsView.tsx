@@ -161,6 +161,12 @@ export default function ListingsView({
                       <span>{listing.metroWalk} мин</span>
                     </div>
                   )}
+                  {listing.hasParking && (
+                    <div className="flex items-center gap-1 text-sm text-green-600 font-semibold mt-1">
+                      <Icon name="Car" size={14} />
+                      <span>Парковка</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardHeader>
