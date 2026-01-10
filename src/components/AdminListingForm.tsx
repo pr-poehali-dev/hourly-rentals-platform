@@ -40,7 +40,15 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     rooms: listing?.rooms || [],
   });
 
-  const [newRoom, setNewRoom] = useState({ type: '', price: 0, description: '', image_url: '' });
+  const [newRoom, setNewRoom] = useState({ 
+    type: '', 
+    price: 0, 
+    description: '', 
+    images: [] as string[], 
+    square_meters: 0,
+    features: [] as string[]
+  });
+  const [uploadingRoomPhotos, setUploadingRoomPhotos] = useState(false);
 
   const availableFeatures = [
     'WiFi',
@@ -138,6 +146,72 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     }
   };
 
+  const handleNewRoomPhotosUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    if (newRoom.images.length + files.length > 10) {
+      toast({
+        title: 'Ошибка',
+        description: 'Максимум 10 фото на номер',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploadingRoomPhotos(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (const file of files) {
+        const reader = new FileReader();
+        const result = await new Promise<string>((resolve, reject) => {
+          reader.onload = async (event) => {
+            const base64 = event.target?.result?.toString().split(',')[1];
+            if (!base64) {
+              reject('Ошибка чтения файла');
+              return;
+            }
+
+            try {
+              const uploadResult = await api.uploadPhoto(token, base64, file.type);
+              if (uploadResult.url) {
+                resolve(uploadResult.url);
+              } else {
+                reject('Не удалось загрузить');
+              }
+            } catch (err) {
+              reject(err);
+            }
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        uploadedUrls.push(result);
+      }
+
+      setNewRoom({ ...newRoom, images: [...newRoom.images, ...uploadedUrls] });
+      toast({
+        title: 'Успешно',
+        description: `Загружено ${uploadedUrls.length} фото`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить фото',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingRoomPhotos(false);
+    }
+  };
+
+  const removeNewRoomPhoto = (index: number) => {
+    setNewRoom({
+      ...newRoom,
+      images: newRoom.images.filter((_, i) => i !== index),
+    });
+  };
+
   const toggleFeature = (feature: string) => {
     if (formData.features.includes(feature)) {
       setFormData({
@@ -152,13 +226,34 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     }
   };
 
+  const toggleNewRoomFeature = (feature: string) => {
+    if (newRoom.features.includes(feature)) {
+      setNewRoom({
+        ...newRoom,
+        features: newRoom.features.filter((f) => f !== feature),
+      });
+    } else {
+      setNewRoom({
+        ...newRoom,
+        features: [...newRoom.features, feature],
+      });
+    }
+  };
+
   const addRoom = () => {
     if (newRoom.type && newRoom.price > 0) {
       setFormData({
         ...formData,
         rooms: [...formData.rooms, newRoom],
       });
-      setNewRoom({ type: '', price: 0, description: '', image_url: '' });
+      setNewRoom({ 
+        type: '', 
+        price: 0, 
+        description: '', 
+        images: [], 
+        square_meters: 0,
+        features: []
+      });
     }
   };
 
@@ -401,8 +496,13 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                 <div key={index} className="p-4 border rounded-lg bg-purple-50">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <div className="font-semibold">{room.type}</div>
-                      <div className="text-purple-600 font-bold">{room.price} ₽/час</div>
+                      <div className="font-semibold text-lg">{room.type}</div>
+                      <div className="text-purple-600 font-bold text-xl">{room.price} ₽/час</div>
+                      {room.square_meters > 0 && (
+                        <Badge variant="secondary" className="mt-1">
+                          {room.square_meters} м²
+                        </Badge>
+                      )}
                     </div>
                     <Button
                       type="button"
@@ -413,32 +513,125 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                       <Icon name="Trash2" size={16} />
                     </Button>
                   </div>
-                  {room.image_url && (
-                    <img src={room.image_url} alt={room.type} className="w-full h-32 object-cover rounded mb-2" />
+                  
+                  {room.images && room.images.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto mb-3">
+                      {room.images.map((img: string, imgIdx: number) => (
+                        <img key={imgIdx} src={img} alt={`${room.type} ${imgIdx + 1}`} className="w-24 h-24 object-cover rounded" />
+                      ))}
+                    </div>
                   )}
+
+                  {room.features && room.features.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {room.features.map((feature: string, fIdx: number) => (
+                        <Badge key={fIdx} variant="outline" className="text-xs">
+                          {feature}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
                   {room.description && (
                     <p className="text-sm text-muted-foreground">{room.description}</p>
                   )}
                 </div>
               ))}
 
-              <div className="space-y-3 p-4 border rounded-lg">
-                <Input
-                  placeholder="Тип номера (например: Стандарт)"
-                  value={newRoom.type}
-                  onChange={(e) => setNewRoom({ ...newRoom, type: e.target.value })}
-                />
+              <div className="space-y-4 p-4 border rounded-lg bg-white">
+                <h3 className="font-semibold text-lg">Добавить категорию номера</h3>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    placeholder="Тип номера (например: Стандарт)"
+                    value={newRoom.type}
+                    onChange={(e) => setNewRoom({ ...newRoom, type: e.target.value })}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Цена за час"
+                    value={newRoom.price || ''}
+                    onChange={(e) => setNewRoom({ ...newRoom, price: parseInt(e.target.value) })}
+                  />
+                </div>
+
                 <Input
                   type="number"
-                  placeholder="Цена за час"
-                  value={newRoom.price || ''}
-                  onChange={(e) => setNewRoom({ ...newRoom, price: parseInt(e.target.value) })}
+                  placeholder="Площадь, м²"
+                  value={newRoom.square_meters || ''}
+                  onChange={(e) => setNewRoom({ ...newRoom, square_meters: parseInt(e.target.value) })}
                 />
+
                 <Input
                   placeholder="Описание (опционально)"
                   value={newRoom.description}
                   onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
                 />
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Фото номера (до 10 шт)</label>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {newRoom.images.map((url, idx) => (
+                      <div key={idx} className="relative">
+                        <img src={url} alt={`Room ${idx + 1}`} className="w-20 h-20 object-cover rounded" />
+                        <button
+                          type="button"
+                          onClick={() => removeNewRoomPhoto(idx)}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleNewRoomPhotosUpload}
+                    className="hidden"
+                    id="room-photos-input"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('room-photos-input')?.click()}
+                    disabled={uploadingRoomPhotos || newRoom.images.length >= 10}
+                  >
+                    {uploadingRoomPhotos ? (
+                      <>
+                        <Icon name="Loader2" size={18} className="mr-2 animate-spin" />
+                        Загрузка...
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="Upload" size={18} className="mr-2" />
+                        Загрузить фото ({newRoom.images.length}/10)
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Удобства в номере</label>
+                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border rounded">
+                    {availableFeatures.map((feature) => (
+                      <label
+                        key={feature}
+                        className="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-purple-50 transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={newRoom.features.includes(feature)}
+                          onChange={() => toggleNewRoomFeature(feature)}
+                          className="w-4 h-4 text-purple-600 rounded"
+                        />
+                        <span className="text-sm">{feature}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 <Button type="button" onClick={addRoom} variant="outline" className="w-full">
                   <Icon name="Plus" size={18} className="mr-2" />
                   Добавить категорию

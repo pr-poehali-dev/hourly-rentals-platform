@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
+import { useNavigate } from 'react-router-dom';
 
 type Hotel = {
   id: number;
@@ -29,6 +30,8 @@ interface HotelModalProps {
 }
 
 export default function HotelModal({ open, onOpenChange, hotel }: HotelModalProps) {
+  const navigate = useNavigate();
+  
   if (!hotel) return null;
 
   return (
@@ -109,21 +112,29 @@ export default function HotelModal({ open, onOpenChange, hotel }: HotelModalProp
             </h3>
             <div className="space-y-3">
               {hotel.rooms.map((room, idx) => (
-                <div key={idx} className="border-2 border-purple-100 rounded-xl p-4 hover:border-purple-300 hover:shadow-lg transition-all">
+                <div 
+                  key={idx} 
+                  className="border-2 border-purple-100 rounded-xl p-4 hover:border-purple-300 hover:shadow-lg transition-all cursor-pointer"
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate(`/listing/${hotel.id}/room/${idx}`);
+                  }}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <h4 className="text-lg font-bold">{room.type}</h4>
-                      <p className="text-sm text-muted-foreground">Комфортабельный номер</p>
+                      <p className="text-sm text-muted-foreground">Нажмите для просмотра деталей</p>
                     </div>
                     <div className="text-right">
                       <div className="text-3xl font-bold text-purple-600">{room.price} ₽</div>
                       <div className="text-sm text-muted-foreground">за час</div>
                     </div>
                   </div>
-                  <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                    <Icon name="Calendar" size={18} className="mr-2" />
-                    Забронировать {room.type}
-                  </Button>
+                  <div className="flex items-center justify-center gap-2 text-purple-600 font-medium">
+                    <Icon name="Eye" size={18} />
+                    <span>Смотреть детали номера</span>
+                    <Icon name="ArrowRight" size={18} />
+                  </div>
                 </div>
               ))}
             </div>
