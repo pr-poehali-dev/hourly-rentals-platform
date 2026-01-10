@@ -1,8 +1,16 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import InteractiveMap from '@/components/InteractiveMap';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type Listing = {
   id: number;
@@ -42,14 +50,40 @@ export default function ListingsView({
   setSelectedListing,
   onCardClick,
 }: ListingsViewProps) {
+  const [sortBy, setSortBy] = useState<string>('auction');
+
+  const sortedListings = [...filteredListings].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-asc':
+        return a.price - b.price;
+      case 'price-desc':
+        return b.price - a.price;
+      case 'rating':
+        return b.rating - a.rating;
+      case 'auction':
+      default:
+        return a.auction - b.auction;
+    }
+  });
+
   return (
     <section>
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-2xl font-bold">Доступные объекты</h3>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Icon name="TrendingUp" size={20} className="text-purple-600" />
-            <span className="text-sm text-muted-foreground">Отсортировано по аукционной позиции</span>
+            <Icon name="ArrowUpDown" size={18} className="text-purple-600" />
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auction">По позиции</SelectItem>
+                <SelectItem value="price-asc">Цена: по возрастанию</SelectItem>
+                <SelectItem value="price-desc">Цена: по убыванию</SelectItem>
+                <SelectItem value="rating">По рейтингу</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Button 
             variant={showMap ? 'default' : 'outline'} 
@@ -66,7 +100,7 @@ export default function ListingsView({
       {showMap ? (
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="space-y-4 max-h-[700px] overflow-y-auto pr-2">
-            {filteredListings.map((listing) => (
+            {sortedListings.map((listing) => (
               <Card 
                 key={listing.id} 
                 className={`overflow-hidden cursor-pointer border-2 transition-all ${
@@ -108,7 +142,7 @@ export default function ListingsView({
           
           <div className="sticky top-24 h-[700px]">
             <InteractiveMap 
-              listings={filteredListings} 
+              listings={sortedListings} 
               selectedId={selectedListing}
               onSelectListing={setSelectedListing}
             />
@@ -116,7 +150,7 @@ export default function ListingsView({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredListings.map((listing, index) => (
+        {sortedListings.map((listing, index) => (
           <Card 
             key={listing.id} 
             className="group overflow-hidden cursor-pointer border-2 border-purple-100 hover:border-purple-300 transition-all animate-fade-in hover:shadow-xl flex flex-col" 
