@@ -686,8 +686,9 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Район</label>
+                <label className="text-sm font-medium mb-2 block">Адрес</label>
                 <Input
+                  placeholder="ул. Ленина, 25"
                   value={formData.district}
                   onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                   required
