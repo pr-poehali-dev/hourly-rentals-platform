@@ -150,6 +150,23 @@ export default function AdminPanel() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {listings.map((listing) => (
               <Card key={listing.id} className={listing.is_archived ? 'opacity-60' : ''}>
+                <div className="relative">
+                  {listing.image_url ? (
+                    <img src={listing.image_url} alt={listing.title} className="h-48 w-full object-cover" />
+                  ) : (
+                    <div className="h-48 bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center text-6xl">
+                      🏨
+                    </div>
+                  )}
+                  {listing.logo_url && (
+                    <div className="absolute top-3 right-3 w-12 h-12 border rounded bg-white/90 backdrop-blur-sm p-1 flex items-center justify-center">
+                      <img src={listing.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
+                    </div>
+                  )}
+                  {listing.is_archived && (
+                    <Badge variant="secondary" className="absolute top-3 left-3">Архив</Badge>
+                  )}
+                </div>
                 <CardHeader>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -158,16 +175,6 @@ export default function AdminPanel() {
                         <Icon name="MapPin" size={14} />
                         <span>{listing.city}, {listing.district}</span>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      {listing.logo_url && (
-                        <div className="w-12 h-12 border rounded bg-white p-1 flex items-center justify-center">
-                          <img src={listing.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
-                        </div>
-                      )}
-                      {listing.is_archived && (
-                        <Badge variant="secondary">Архив</Badge>
-                      )}
                     </div>
                   </div>
                 </CardHeader>
