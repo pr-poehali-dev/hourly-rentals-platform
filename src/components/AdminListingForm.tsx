@@ -883,7 +883,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                   >
                     <input
                       type="checkbox"
-                      checked={formData.features.includes(feature)}
+                      checked={formData.features && formData.features.includes(feature)}
                       onChange={() => toggleFeature(feature)}
                       className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
                     />
@@ -898,7 +898,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Категории номеров</CardTitle>
-                {formData.rooms.length > 0 && (
+                {formData.rooms && formData.rooms.length > 0 && (
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Icon name="GripVertical" size={14} />
                     Перетащите для сортировки
@@ -907,7 +907,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {formData.rooms.length > 0 ? (
+              {formData.rooms && formData.rooms.length > 0 ? (
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -1016,7 +1016,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                 <div>
                   <label className="text-sm font-medium mb-2 block">Фото номера (до 10 шт)</label>
                   
-                  {newRoom.images.length > 0 && (
+                  {newRoom.images && newRoom.images.length > 0 && (
                     <div className="mb-3">
                       <div className="flex items-center gap-2 mb-2">
                         <Icon name="GripVertical" size={16} className="text-muted-foreground" />
@@ -1074,7 +1074,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                       isDragging 
                         ? 'border-purple-500 bg-purple-50 scale-[1.02]' 
                         : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50/50'
-                    } ${uploadingRoomPhotos || newRoom.images.length >= 10 ? 'opacity-50 pointer-events-none' : ''}`}
+                    } ${uploadingRoomPhotos || (newRoom.images && newRoom.images.length >= 10) ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     <div className="flex flex-col items-center justify-center gap-3">
                       <div className={`p-4 rounded-full ${isDragging ? 'bg-purple-200' : 'bg-gray-100'} transition-colors`}>
@@ -1116,16 +1116,16 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                             type="button"
                             variant="outline"
                             onClick={() => document.getElementById('room-photos-input')?.click()}
-                            disabled={newRoom.images.length >= 10}
+                            disabled={newRoom.images && newRoom.images.length >= 10}
                             className="border-purple-300 hover:bg-purple-100"
                           >
                             <Icon name="FolderOpen" size={18} className="mr-2" />
-                            Выбрать файлы ({newRoom.images.length}/10)
+                            Выбрать файлы ({newRoom.images?.length || 0}/10)
                           </Button>
                         </>
                       )}
 
-                      {newRoom.images.length >= 10 && (
+                      {newRoom.images && newRoom.images.length >= 10 && (
                         <p className="text-sm text-amber-600 font-medium">
                           Достигнут лимит: 10 фото
                         </p>
@@ -1144,7 +1144,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                       >
                         <input
                           type="checkbox"
-                          checked={newRoom.features.includes(feature)}
+                          checked={newRoom.features && newRoom.features.includes(feature)}
                           onChange={() => toggleNewRoomFeature(feature)}
                           className="w-4 h-4 text-purple-600 rounded"
                         />
