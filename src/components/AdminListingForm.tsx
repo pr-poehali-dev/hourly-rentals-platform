@@ -308,6 +308,11 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     try {
       let finalData = { ...formData };
 
+      console.log('=== SAVING LISTING ===');
+      console.log('formData.rooms:', formData.rooms);
+      console.log('formData.rooms length:', formData.rooms?.length);
+      console.log('Full formData:', finalData);
+
       if (formData.city && formData.district) {
         const coords = await geocodeAddress(formData.city, formData.district);
         if (coords) {
@@ -318,6 +323,9 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
           });
         }
       }
+
+      console.log('Sending to server:', finalData);
+      console.log('Rooms count:', finalData.rooms?.length);
 
       if (listing) {
         await api.updateListing(token, listing.id, finalData);
