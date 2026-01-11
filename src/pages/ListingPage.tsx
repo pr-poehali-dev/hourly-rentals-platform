@@ -173,7 +173,7 @@ export default function ListingPage() {
                   {listing.phone && (
                     <Button 
                       onClick={() => setPhoneModalOpen(true)}
-                      className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg py-6"
+                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-lg py-6"
                     >
                       <Icon name="Phone" size={20} className="mr-2" />
                       Позвонить
@@ -377,15 +377,15 @@ export default function ListingPage() {
             <DialogTitle className="text-2xl font-bold text-center">Номер телефона</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
-            <div className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 rounded-xl p-6 text-center">
-              <Icon name="Phone" size={48} className="mx-auto mb-3 text-green-600" />
-              <a href={`tel:${listing.phone}`} className="text-3xl font-bold text-green-600 hover:text-green-700 transition-colors">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-xl p-6 text-center">
+              <Icon name="Phone" size={48} className="mx-auto mb-3 text-purple-600" />
+              <a href={`tel:${listing.phone}`} className="text-3xl font-bold text-purple-600 hover:text-purple-700 transition-colors">
                 {listing.phone}
               </a>
             </div>
             <Button 
               asChild
-              className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg py-6"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-lg py-6"
             >
               <a href={`tel:${listing.phone}`}>
                 <Icon name="Phone" size={20} className="mr-2" />
