@@ -174,25 +174,33 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     })
   );
 
-  const [formData, setFormData] = useState({
-    title: listing?.title || '',
-    type: listing?.type || 'hotel',
-    city: listing?.city || '',
-    district: listing?.district || '',
-    price: listing?.price || 0,
-    auction: listing?.auction || 999,
-    image_url: listing?.image_url || '',
-    logo_url: listing?.logo_url || '',
-    metro: listing?.metro || '',
-    metro_walk: listing?.metro_walk || 0,
-    has_parking: listing?.has_parking || false,
-    features: listing?.features || [],
-    lat: listing?.lat || 0,
-    lng: listing?.lng || 0,
-    min_hours: listing?.min_hours || 1,
-    rooms: listing?.rooms || [],
-    phone: listing?.phone || '',
-    telegram: listing?.telegram || '',
+  const [formData, setFormData] = useState(() => {
+    console.log('=== INITIALIZING FORM DATA ===');
+    console.log('Listing prop:', listing);
+    console.log('Listing rooms:', listing?.rooms);
+    if (listing?.rooms && listing.rooms.length > 0) {
+      console.log('First room data:', listing.rooms[0]);
+    }
+    return {
+      title: listing?.title || '',
+      type: listing?.type || 'hotel',
+      city: listing?.city || '',
+      district: listing?.district || '',
+      price: listing?.price || 0,
+      auction: listing?.auction || 999,
+      image_url: listing?.image_url || '',
+      logo_url: listing?.logo_url || '',
+      metro: listing?.metro || '',
+      metro_walk: listing?.metro_walk || 0,
+      has_parking: listing?.has_parking || false,
+      features: listing?.features || [],
+      lat: listing?.lat || 0,
+      lng: listing?.lng || 0,
+      min_hours: listing?.min_hours || 1,
+      rooms: listing?.rooms || [],
+      phone: listing?.phone || '',
+      telegram: listing?.telegram || '',
+    };
   });
 
   const [newRoom, setNewRoom] = useState({ 
@@ -1040,8 +1048,19 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
             </CardHeader>
             <CardContent className="space-y-4">
               {(() => {
-                console.log('Rendering rooms list. Total rooms:', formData.rooms?.length || 0);
-                console.log('Rooms array:', formData.rooms);
+                console.log('=== RENDERING ROOMS LIST ===');
+                console.log('Total rooms:', formData.rooms?.length || 0);
+                if (formData.rooms && formData.rooms.length > 0) {
+                  formData.rooms.forEach((room, idx) => {
+                    console.log(`Room ${idx}:`, {
+                      type: room.type,
+                      price: room.price,
+                      square_meters: room.square_meters,
+                      payment_methods: room.payment_methods,
+                      cancellation_policy: room.cancellation_policy
+                    });
+                  });
+                }
                 return null;
               })()}
               {formData.rooms && formData.rooms.length > 0 ? (
