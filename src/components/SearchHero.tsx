@@ -134,6 +134,23 @@ export default function SearchHero({
 
           <div className="space-y-3 mt-4">
             <div className="flex items-center gap-2">
+              <Icon name="MapPin" size={16} className="text-purple-600" />
+              <span className="text-sm font-semibold text-purple-700">Популярные города:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {['Уфа', 'Москва', 'Санкт-Петербург', 'Казань', 'Екатеринбург', 'Новосибирск'].map(city => (
+                <Badge
+                  key={city}
+                  variant={selectedCity === city ? "default" : "secondary"}
+                  className={`cursor-pointer ${selectedCity === city ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'hover:bg-purple-100'}`}
+                  onClick={() => setSelectedCity(city)}
+                >
+                  {city}
+                </Badge>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
               <Icon name="Filter" size={16} className="text-purple-600" />
               <span className="text-sm font-semibold text-purple-700">Фильтры:</span>
             </div>
@@ -147,28 +164,12 @@ export default function SearchHero({
                 С парковкой
               </Badge>
               <Badge 
-                variant={minHours === 2 ? "default" : "secondary"} 
-                className={`cursor-pointer ${minHours === 2 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'hover:bg-purple-100'}`}
-                onClick={() => setMinHours(minHours === 2 ? null : 2)}
+                variant={minHours === 1 ? "default" : "secondary"} 
+                className={`cursor-pointer ${minHours === 1 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'hover:bg-purple-100'}`}
+                onClick={() => setMinHours(minHours === 1 ? null : 1)}
               >
                 <Icon name="Clock" size={14} className="mr-1" />
-                От 2 часов
-              </Badge>
-              <Badge 
-                variant={minHours === 3 ? "default" : "secondary"} 
-                className={`cursor-pointer ${minHours === 3 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'hover:bg-purple-100'}`}
-                onClick={() => setMinHours(minHours === 3 ? null : 3)}
-              >
-                <Icon name="Clock" size={14} className="mr-1" />
-                От 3 часов
-              </Badge>
-              <Badge 
-                variant={minHours === 4 ? "default" : "secondary"} 
-                className={`cursor-pointer ${minHours === 4 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'hover:bg-purple-100'}`}
-                onClick={() => setMinHours(minHours === 4 ? null : 4)}
-              >
-                <Icon name="Clock" size={14} className="mr-1" />
-                От 4 часов
+                От 1 часа
               </Badge>
               <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100" onClick={() => setShowMap(!showMap)}>
                 <Icon name="Map" size={14} className="mr-1" />
