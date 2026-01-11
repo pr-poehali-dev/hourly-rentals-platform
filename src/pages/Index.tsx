@@ -63,17 +63,17 @@ export default function Index() {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-purple-200 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <img 
                 src="https://cdn.poehali.dev/projects/1a35ca30-983f-4a91-b0b4-3c6fa1c9a65b/files/4275be5a-5d13-4ada-b309-ce0e431a053f.jpg" 
                 alt="120 минут" 
-                className="h-12 w-12 rounded-lg object-cover"
+                className="h-16 w-16 md:h-20 md:w-20 rounded-xl object-cover shadow-md"
               />
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   120 минут
                 </h1>
-                <p className="text-xs text-muted-foreground">Почасовая аренда по всей России</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Почасовая аренда по всей России</p>
               </div>
             </div>
 
