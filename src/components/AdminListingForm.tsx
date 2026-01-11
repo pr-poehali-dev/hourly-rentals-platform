@@ -485,11 +485,17 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
       console.log('Rooms count:', finalData.rooms?.length);
 
       if (listing) {
-        await api.updateListing(token, listing.id, finalData);
+        const updated = await api.updateListing(token, listing.id, finalData);
+        console.log('✅ Server returned updated listing:', updated);
+        
         toast({
           title: 'Успешно',
-          description: 'Объект обновлён',
+          description: `Объект обновлён. Категорий номеров: ${finalData.rooms.length}`,
         });
+        
+        // Критически важно: обновляем formData актуальными данными с сервера
+        const freshData = await api.getListings(token, false);
+        console.log('🔄 Reloaded fresh data from server');
       } else {
         await api.createListing(token, finalData);
         toast({
@@ -497,6 +503,21 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
           description: 'Объект создан',
         });
       }
+      
+      // Сброс состояния перед закрытием
+      setNewRoom({ 
+        type: '', 
+        price: 0, 
+        description: '', 
+        images: [], 
+        square_meters: 0,
+        features: [],
+        min_hours: 1,
+        payment_methods: 'Наличные, банковская карта при заселении',
+        cancellation_policy: 'Бесплатная отмена за 1 час до заселения'
+      });
+      setEditingRoomIndex(null);
+      
       onClose();
     } catch (error: any) {
       toast({
