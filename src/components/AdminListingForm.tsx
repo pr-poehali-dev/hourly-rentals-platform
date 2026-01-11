@@ -384,6 +384,10 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 HANDLE SUBMIT CALLED - START');
+    console.log('🔍 editingRoomIndex:', editingRoomIndex);
+    console.log('🔍 newRoom state:', JSON.stringify(newRoom));
+    console.log('🔍 formData.rooms.length:', formData.rooms.length);
     setIsLoading(true);
 
     try {
