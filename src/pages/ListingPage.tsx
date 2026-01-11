@@ -19,6 +19,7 @@ export default function ListingPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [selectedRoomImages, setSelectedRoomImages] = useState<{ [key: number]: number }>({});
+  const [imageTransitions, setImageTransitions] = useState<{ [key: number]: 'fade-in' | 'fade-out' | '' }>({});
   const [imageGalleryOpen, setImageGalleryOpen] = useState(false);
   const [galleryRoomIndex, setGalleryRoomIndex] = useState(0);
 
@@ -212,11 +213,13 @@ export default function ListingPage() {
                   <CardContent className="p-0">
                     <div className="grid lg:grid-cols-2 gap-6">
                       {/* Фото номера */}
-                      <div className="relative">
+                      <div className="relative overflow-hidden">
                         <img
                           src={roomImages[currentImageIndex]}
                           alt={room.type}
-                          className="w-full h-[400px] object-cover cursor-pointer"
+                          className={`w-full h-[400px] object-cover cursor-pointer transition-opacity duration-500 ${
+                            imageTransitions[roomIndex] === 'fade-out' ? 'opacity-0' : 'opacity-100'
+                          }`}
                           onClick={() => openGallery(roomIndex)}
                         />
                         {roomImages.length > 1 && (
@@ -227,24 +230,32 @@ export default function ListingPage() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedRoomImages(prev => ({
-                                  ...prev,
-                                  [roomIndex]: currentImageIndex === 0 ? roomImages.length - 1 : currentImageIndex - 1
-                                }));
+                                setImageTransitions(prev => ({ ...prev, [roomIndex]: 'fade-out' }));
+                                setTimeout(() => {
+                                  setSelectedRoomImages(prev => ({
+                                    ...prev,
+                                    [roomIndex]: currentImageIndex === 0 ? roomImages.length - 1 : currentImageIndex - 1
+                                  }));
+                                  setImageTransitions(prev => ({ ...prev, [roomIndex]: '' }));
+                                }, 250);
                               }}
-                              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all"
+                              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all hover:scale-110"
                             >
                               <Icon name="ChevronLeft" size={24} />
                             </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedRoomImages(prev => ({
-                                  ...prev,
-                                  [roomIndex]: currentImageIndex === roomImages.length - 1 ? 0 : currentImageIndex + 1
-                                }));
+                                setImageTransitions(prev => ({ ...prev, [roomIndex]: 'fade-out' }));
+                                setTimeout(() => {
+                                  setSelectedRoomImages(prev => ({
+                                    ...prev,
+                                    [roomIndex]: currentImageIndex === roomImages.length - 1 ? 0 : currentImageIndex + 1
+                                  }));
+                                  setImageTransitions(prev => ({ ...prev, [roomIndex]: '' }));
+                                }, 250);
                               }}
-                              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all"
+                              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all hover:scale-110"
                             >
                               <Icon name="ChevronRight" size={24} />
                             </button>
