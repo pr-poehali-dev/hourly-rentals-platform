@@ -67,7 +67,7 @@ export default function Index() {
               <img 
                 src="https://cdn.poehali.dev/projects/1a35ca30-983f-4a91-b0b4-3c6fa1c9a65b/files/4275be5a-5d13-4ada-b309-ce0e431a053f.jpg" 
                 alt="120 минут" 
-                className="h-16 w-16 md:h-20 md:w-20 rounded-xl object-cover shadow-md"
+                className="h-16 w-16 md:h-20 md:w-20 rounded-xl object-cover shadow-md hover:rotate-[360deg] transition-transform duration-700 cursor-pointer"
               />
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
