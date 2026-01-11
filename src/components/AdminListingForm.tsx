@@ -441,6 +441,21 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
         }
       }
 
+      // Очищаем rooms от служебных полей БД
+      const cleanRooms = finalData.rooms.map((room: any) => ({
+        type: room.type,
+        price: room.price,
+        description: room.description || '',
+        images: Array.isArray(room.images) ? room.images : [],
+        square_meters: room.square_meters || 0,
+        features: Array.isArray(room.features) ? room.features : [],
+        min_hours: room.min_hours || 1,
+        payment_methods: room.payment_methods || 'Наличные, банковская карта при заселении',
+        cancellation_policy: room.cancellation_policy || 'Бесплатная отмена за 1 час до заселения'
+      }));
+
+      finalData = { ...finalData, rooms: cleanRooms };
+
       console.log('Sending to server:', finalData);
       console.log('Rooms count:', finalData.rooms?.length);
 
