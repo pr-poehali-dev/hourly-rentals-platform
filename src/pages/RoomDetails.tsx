@@ -29,6 +29,9 @@ export default function RoomDetails() {
         const foundListing = listings.find((l: any) => l.id === parseInt(listingId || '0'));
         const foundRoom = foundListing?.rooms?.[parseInt(roomIndex || '0')];
         
+        console.log('Room data:', foundRoom);
+        console.log('Room images:', foundRoom?.images);
+        
         setListing(foundListing);
         setRoom(foundRoom);
       } catch (error) {
@@ -93,6 +96,9 @@ export default function RoomDetails() {
   const roomImages = room.images && Array.isArray(room.images) && room.images.length > 0 
     ? room.images 
     : [listing.image_url];
+
+  console.log('Final roomImages array:', roomImages);
+  console.log('roomImages length:', roomImages.length);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
