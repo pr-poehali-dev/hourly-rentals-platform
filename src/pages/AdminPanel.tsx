@@ -31,6 +31,11 @@ export default function AdminPanel() {
     setIsLoading(true);
     try {
       const data = await api.getListings(token!, showArchived);
+      console.log('=== LOADED LISTINGS FROM API ===');
+      console.log('Total listings:', data.length);
+      if (data.length > 0) {
+        console.log('First listing rooms:', data[0].rooms);
+      }
       if (data.error) {
         throw new Error(data.error);
       }
@@ -69,6 +74,9 @@ export default function AdminPanel() {
   };
 
   const handleEdit = (listing: any) => {
+    console.log('=== OPENING EDIT FORM ===');
+    console.log('Listing to edit:', listing);
+    console.log('Listing rooms:', listing.rooms);
     setSelectedListing(listing);
     setShowForm(true);
   };
