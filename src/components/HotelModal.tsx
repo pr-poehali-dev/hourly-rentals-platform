@@ -132,7 +132,7 @@ export default function HotelModal({ open, onOpenChange, hotel }: HotelModalProp
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <Icon name="CheckCircle2" size={16} className="text-green-500 mt-0.5" />
-                <span>Минимальное время бронирования — 1 час</span>
+                <span>Минимальное время бронирования — {hotel.minHours} {hotel.minHours === 1 ? 'час' : 'часа'}</span>
               </li>
               <li className="flex items-start gap-2">
                 <Icon name="CheckCircle2" size={16} className="text-green-500 mt-0.5" />

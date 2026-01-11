@@ -47,9 +47,8 @@ export default function Index() {
     .filter(l => minHours === null || l.minHours <= minHours)
     .filter(l => l.title.toLowerCase().includes(searchCity.toLowerCase()) || l.city.toLowerCase().includes(searchCity.toLowerCase()));
 
-  const handleCardClick = (listing: typeof mockListings[0]) => {
-    setSelectedHotel(listing);
-    setDialogOpen(true);
+  const handleCardClick = (listing: any) => {
+    window.location.href = `/listing/${listing.id}`;
   };
 
   return (
