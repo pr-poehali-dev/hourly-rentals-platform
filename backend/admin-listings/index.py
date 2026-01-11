@@ -139,6 +139,13 @@ def handler(event: dict, context) -> dict:
             
             body = json.loads(event.get('body', '{}'))
             
+            print(f'=== UPDATE LISTING ID {listing_id} ===')
+            print(f'Body keys: {body.keys()}')
+            print(f'Has rooms: {"rooms" in body}')
+            if 'rooms' in body:
+                print(f'Rooms count: {len(body["rooms"])}')
+                print(f'Rooms data: {body["rooms"]}')
+            
             cur.execute("""
                 UPDATE listings SET 
                     title=%s, type=%s, city=%s, district=%s, price=%s, rating=%s, 
