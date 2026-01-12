@@ -27,19 +27,15 @@ export default function CompanyInfo() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Наименование</div>
-                  <div className="font-semibold">ИП Иванов Иван Иванович</div>
+                  <div className="font-semibold">ИП Кельман Ксения Андреевна</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">ИНН</div>
-                  <div className="font-semibold">123456789012</div>
+                  <div className="font-semibold">271307627509</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">ОГРНИП</div>
-                  <div className="font-semibold">123456789012345</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground mb-1">Дата регистрации</div>
-                  <div className="font-semibold">01.01.2024</div>
+                  <div className="font-semibold">323270000053207</div>
                 </div>
               </div>
             </CardContent>
@@ -49,42 +45,13 @@ export default function CompanyInfo() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Icon name="MapPin" size={24} />
-                Юридический адрес
+                Адрес регистрации
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="font-semibold">
-                450000, Республика Башкортостан, г. Уфа, ул. Ленина, д. 1, офис 100
+                Хабаровский край, район имени Лазо, п. Хор, ул. Менделеева, д. 10-42
               </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon name="Phone" size={24} />
-                Контактная информация
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <div className="text-sm text-muted-foreground mb-1">Телефон</div>
-                <a href="tel:+79991234567" className="font-semibold text-purple-600 hover:underline">
-                  +7 (999) 123-45-67
-                </a>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground mb-1">Email</div>
-                <a href="mailto:info@120min.ru" className="font-semibold text-purple-600 hover:underline">
-                  info@120min.ru
-                </a>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground mb-1">Telegram</div>
-                <a href="https://t.me/support120min" target="_blank" rel="noopener noreferrer" className="font-semibold text-purple-600 hover:underline">
-                  @support120min
-                </a>
-              </div>
             </CardContent>
           </Card>
 
