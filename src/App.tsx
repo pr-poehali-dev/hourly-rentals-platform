@@ -11,6 +11,7 @@ import ListingPage from "./pages/ListingPage";
 import RoomDetails from "./pages/RoomDetails";
 import OwnerRegister from "./pages/OwnerRegister";
 import OwnerLogin from "./pages/OwnerLogin";
+import OwnerDashboard from "./pages/OwnerDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/owner/register" element={<OwnerRegister />} />
           <Route path="/owner/login" element={<OwnerLogin />} />
+          <Route path="/owner/dashboard" element={<OwnerDashboard />} />
           <Route path="/listing/:listingId" element={<ListingPage />} />
           <Route path="/listing/:listingId/room/:roomIndex" element={<RoomDetails />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
