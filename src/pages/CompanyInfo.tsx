@@ -66,19 +66,19 @@ export default function CompanyInfo() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Банк</div>
-                  <div className="font-semibold">ПАО Сбербанк</div>
+                  <div className="font-semibold">АО Тинькофф Банк</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">БИК</div>
-                  <div className="font-semibold">044525225</div>
+                  <div className="font-semibold">044525974</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Корр. счёт</div>
-                  <div className="font-semibold">30101810400000000225</div>
+                  <div className="font-semibold">30101810145250000974</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Расчётный счёт</div>
-                  <div className="font-semibold">40802810123456789012</div>
+                  <div className="font-semibold">40802810800005400060</div>
                 </div>
               </div>
             </CardContent>
