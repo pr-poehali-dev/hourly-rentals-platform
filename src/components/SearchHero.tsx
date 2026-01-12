@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 
 interface SearchHeroProps {
@@ -101,26 +100,7 @@ export default function SearchHero({
                 />
               </div>
             </div>
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="w-full md:w-[180px] h-12 border-purple-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все типы</SelectItem>
-                <SelectItem value="hotel">Отели</SelectItem>
-                <SelectItem value="apartment">Апартаменты</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={selectedCity} onValueChange={setSelectedCity}>
-              <SelectTrigger className="w-full md:w-[200px] h-12 border-purple-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map(city => (
-                  <SelectItem key={city} value={city}>{city}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
             <Button size="lg" className="h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
               <Icon name="Search" size={20} className="mr-2" />
               Найти
