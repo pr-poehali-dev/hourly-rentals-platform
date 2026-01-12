@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Login endpoint check",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "login",
+        "email": "test@test.com",
+        "password": "wrong"
+      },
+      "expectedStatus": 401
+    }
+  ]
+}

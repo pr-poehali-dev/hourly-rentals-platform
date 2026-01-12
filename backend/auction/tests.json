@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Get auction info for city",
+      "method": "GET",
+      "path": "/?city=Уфа",
+      "expectedStatus": 200
+    }
+  ]
+}
