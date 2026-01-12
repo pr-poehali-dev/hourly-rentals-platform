@@ -39,7 +39,8 @@ export default function AdminPanel() {
       if (data.error) {
         throw new Error(data.error);
       }
-      setListings(data);
+      const sortedData = [...data].sort((a, b) => b.id - a.id);
+      setListings(sortedData);
     } catch (error: any) {
       toast({
         title: 'Ошибка',
