@@ -6,6 +6,7 @@ const API_URLS = {
   ownerAuth: 'https://functions.poehali.dev/381f57fd-5365-49e9-bb38-088d8db34102',
   auction: 'https://functions.poehali.dev/8e5ad1a2-e9bb-462c-baba-212ad26ae9a7',
   statistics: 'https://functions.poehali.dev/0b408e53-8bd4-4f19-a1b5-9403bb03cffd',
+  payment: 'https://functions.poehali.dev/d3177c56-4fe4-4a52-a878-e17cca7a1397',
 };
 
 export const api = {
@@ -156,6 +157,16 @@ export const api = {
 
   getStatistics: async (listing_id: number, days: number = 30) => {
     const response = await fetch(`${API_URLS.statistics}?listing_id=${listing_id}&days=${days}`);
+    return response.json();
+  },
+
+  // Платежи
+  createPayment: async (owner_id: number, amount: number) => {
+    const response = await fetch(API_URLS.payment, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create_payment', owner_id, amount }),
+    });
     return response.json();
   },
 };

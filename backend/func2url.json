@@ -1,4 +1,5 @@
 {
+  "payment": "https://functions.poehali.dev/d3177c56-4fe4-4a52-a878-e17cca7a1397",
   "owner-auth": "https://functions.poehali.dev/381f57fd-5365-49e9-bb38-088d8db34102",
   "statistics": "https://functions.poehali.dev/0b408e53-8bd4-4f19-a1b5-9403bb03cffd",
   "auction": "https://functions.poehali.dev/8e5ad1a2-e9bb-462c-baba-212ad26ae9a7",

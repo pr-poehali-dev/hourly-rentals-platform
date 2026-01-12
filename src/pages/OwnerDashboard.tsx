@@ -256,7 +256,43 @@ export default function OwnerDashboard() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Пополнить баланс</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Быстрое пополнение</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[100, 500, 1000, 5000].map((amount) => (
+                        <Button
+                          key={amount}
+                          variant="outline"
+                          onClick={async () => {
+                            try {
+                              const response = await api.createPayment(owner.id, amount);
+                              if (response.error) {
+                                throw new Error(response.error);
+                              }
+                              window.location.href = response.confirmation_url;
+                            } catch (error: any) {
+                              toast({
+                                title: 'Ошибка',
+                                description: error.message || 'Не удалось создать платёж',
+                                variant: 'destructive',
+                              });
+                            }
+                          }}
+                        >
+                          {amount} ₽
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>Мои объекты</CardTitle>

@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Options request check",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}
