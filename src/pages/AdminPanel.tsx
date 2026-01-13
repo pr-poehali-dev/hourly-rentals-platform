@@ -8,9 +8,10 @@ import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import AdminListingForm from '@/components/AdminListingForm';
 import AdminOwnersTab from '@/components/AdminOwnersTab';
+import AdminEmployeesTab from '@/components/AdminEmployeesTab';
 
 export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState<'listings' | 'owners'>('listings');
+  const [activeTab, setActiveTab] = useState<'listings' | 'owners' | 'employees'>('listings');
   const [listings, setListings] = useState<any[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -159,6 +160,16 @@ export default function AdminPanel() {
               Владельцы
             </Button>
           )}
+          {adminInfo?.role === 'superadmin' && (
+            <Button
+              variant={activeTab === 'employees' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('employees')}
+              className="rounded-b-none"
+            >
+              <Icon name="UserCog" size={18} className="mr-2" />
+              Сотрудники
+            </Button>
+          )}
         </div>
 
         {showForm ? (
@@ -169,6 +180,8 @@ export default function AdminPanel() {
           />
         ) : activeTab === 'owners' && hasPermission('owners') ? (
           <AdminOwnersTab token={token!} />
+        ) : activeTab === 'employees' && adminInfo?.role === 'superadmin' ? (
+          <AdminEmployeesTab token={token!} />
         ) : hasPermission('listings') ? (
         <>
         <div className="flex items-center justify-between mb-6">
