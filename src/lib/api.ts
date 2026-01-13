@@ -114,11 +114,11 @@ export const api = {
     return response.json();
   },
 
-  ownerLogin: async (email: string, password: string) => {
+  ownerLogin: async (identifier: string, password: string) => {
     const response = await fetch(API_URLS.ownerAuth, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'login', email, password }),
+      body: JSON.stringify({ action: 'login', identifier, password }),
     });
     return response.json();
   },

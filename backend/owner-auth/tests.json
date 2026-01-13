@@ -1,12 +1,23 @@
 {
   "tests": [
     {
-      "name": "Login endpoint check",
+      "name": "Login with email",
       "method": "POST",
       "path": "/",
       "body": {
         "action": "login",
-        "email": "test@test.com",
+        "identifier": "test@test.com",
+        "password": "wrong"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Login with phone",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "login",
+        "identifier": "+79991234567",
         "password": "wrong"
       },
       "expectedStatus": 401

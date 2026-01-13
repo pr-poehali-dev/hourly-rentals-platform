@@ -91,29 +91,40 @@ def handler(event: dict, context) -> dict:
             }
         
         elif action == 'login':
-            email = body.get('email', '').strip().lower()
+            identifier = body.get('identifier', '').strip()
             password = body.get('password', '')
             
-            if not email or not password:
+            if not identifier or not password:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Введите email и пароль'})
+                    'body': json.dumps({'error': 'Введите телефон/email и пароль'})
                 }
             
             password_hash = hashlib.sha256(password.encode()).hexdigest()
             
-            cur.execute("""
-                SELECT id, email, full_name, balance, bonus_balance, phone
-                FROM owners WHERE email = %s AND password_hash = %s
-            """, (email, password_hash))
+            # Проверяем, что введено - email или телефон
+            if '@' in identifier:
+                # Вход по email
+                identifier_lower = identifier.lower()
+                cur.execute("""
+                    SELECT id, email, full_name, balance, bonus_balance, phone
+                    FROM owners WHERE email = %s AND password_hash = %s AND is_archived = false
+                """, (identifier_lower, password_hash))
+            else:
+                # Вход по телефону (убираем все нецифровые символы)
+                phone_digits = ''.join(filter(str.isdigit, identifier))
+                cur.execute("""
+                    SELECT id, email, full_name, balance, bonus_balance, phone
+                    FROM owners WHERE phone LIKE %s AND password_hash = %s AND is_archived = false
+                """, (f'%{phone_digits}%', password_hash))
             
             owner = cur.fetchone()
             if not owner:
                 return {
                     'statusCode': 401,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Неверный email или пароль'})
+                    'body': json.dumps({'error': 'Неверный телефон/email или пароль'})
                 }
             
             cur.execute("UPDATE owners SET last_login = CURRENT_TIMESTAMP WHERE id = %s", (owner[0],))

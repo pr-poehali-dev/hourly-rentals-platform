@@ -88,14 +88,18 @@ export default function OwnerRegister() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Телефон</Label>
+              <Label htmlFor="phone">Телефон *</Label>
               <Input
                 id="phone"
                 type="tel"
                 placeholder="+7 999 123 45 67"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                required
               />
+              <p className="text-xs text-muted-foreground">
+                Вы сможете входить в личный кабинет используя телефон или email
+              </p>
             </div>
 
             <div className="space-y-2">
