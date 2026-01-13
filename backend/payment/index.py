@@ -45,13 +45,24 @@ def handler(event: dict, context) -> dict:
             'isBase64Encoded': False
         }
     
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
-    cur = conn.cursor()
+    try:
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+    except Exception as e:
+        print(f'Database connection error: {str(e)}')
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Database connection failed'}),
+            'isBase64Encoded': False
+        }
     
     try:
         if action == 'create_payment':
             owner_id = body.get('owner_id')
             amount = body.get('amount')
+            
+            print(f'Create payment request: owner_id={owner_id}, amount={amount}')
             
             if not owner_id or not amount or amount < 1:
                 return {
@@ -107,6 +118,7 @@ def handler(event: dict, context) -> dict:
             try:
                 with urllib.request.urlopen(req) as response:
                     result = json.loads(response.read().decode('utf-8'))
+                    print(f'YooKassa response: {result}')
                     
                     return {
                         'statusCode': 200,
@@ -120,10 +132,19 @@ def handler(event: dict, context) -> dict:
                     }
             except urllib.error.HTTPError as e:
                 error_body = e.read().decode('utf-8')
+                print(f'YooKassa HTTP error: {e.code} - {error_body}')
                 return {
                     'statusCode': 500,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'body': json.dumps({'error': 'Payment creation failed', 'details': error_body}),
+                    'isBase64Encoded': False
+                }
+            except Exception as e:
+                print(f'YooKassa request error: {type(e).__name__}: {str(e)}')
+                return {
+                    'statusCode': 500,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Payment request failed', 'details': str(e)}),
                     'isBase64Encoded': False
                 }
         
