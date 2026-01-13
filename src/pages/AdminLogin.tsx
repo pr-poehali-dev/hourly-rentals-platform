@@ -16,10 +16,13 @@ export default function AdminLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[LOGIN] Попытка входа с логином:', login);
     setIsLoading(true);
 
     try {
+      console.log('[LOGIN] Отправляю запрос к API...');
       const data = await api.login(login, password);
+      console.log('[LOGIN] Получен ответ:', data);
 
       if (data.token) {
         localStorage.setItem('adminToken', data.token);
