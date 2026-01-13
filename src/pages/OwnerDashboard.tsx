@@ -28,7 +28,9 @@ interface Listing {
 interface AuctionInfo {
   positions: Array<{
     position: number;
-    price: number;
+    base_price: number;
+    current_bid: number | null;
+    min_overbid: number | null;
     is_booked: boolean;
     booking_info?: {
       listing_id: number;
@@ -175,15 +177,15 @@ export default function OwnerDashboard() {
     loadStats(listing.id);
   };
 
-  const handleBookPosition = async (position: number, price: number) => {
+  const handleBookPosition = async (position: number, offeredAmount: number) => {
     if (!selectedListing) return;
 
     const totalBalance = (owner?.balance || 0) + (owner?.bonus_balance || 0);
 
-    if (price > totalBalance) {
+    if (offeredAmount > totalBalance) {
       toast({
         title: 'Недостаточно средств',
-        description: `Нужно ${price} ₽, у вас ${totalBalance} ₽`,
+        description: `Нужно ${offeredAmount} ₽, у вас ${totalBalance} ₽`,
         variant: 'destructive',
       });
       return;
@@ -193,27 +195,37 @@ export default function OwnerDashboard() {
     setSelectedPosition(position);
 
     try {
-      const response = await api.placeBid(
-        token!,
-        parseInt(ownerId!),
-        selectedListing.id,
-        selectedListing.city,
-        position
-      );
+      const response = await fetch('https://functions.poehali.dev/8e5ad1a2-e9bb-462c-baba-212ad26ae9a7', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'place_bid',
+          owner_id: parseInt(ownerId!),
+          listing_id: selectedListing.id,
+          city: selectedListing.city,
+          target_position: position,
+          offered_amount: offeredAmount
+        }),
+      });
 
-      if (response.error) {
-        throw new Error(response.error);
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
       }
 
       toast({
         title: 'Успешно!',
-        description: response.message,
+        description: data.message,
       });
 
       const updatedOwnerData = {
         ...owner!,
-        balance: Math.max(0, owner!.balance - (price - Math.min(owner!.bonus_balance, price))),
-        bonus_balance: Math.max(0, owner!.bonus_balance - Math.min(owner!.bonus_balance, price))
+        balance: Math.max(0, owner!.balance - (offeredAmount - Math.min(owner!.bonus_balance, offeredAmount))),
+        bonus_balance: Math.max(0, owner!.bonus_balance - Math.min(owner!.bonus_balance, offeredAmount))
       };
       setOwner(updatedOwnerData);
       localStorage.setItem('ownerData', JSON.stringify(updatedOwnerData));
@@ -491,13 +503,14 @@ export default function OwnerDashboard() {
                               {[...auctionInfo.positions].reverse().map((posInfo) => {
                                 const isMyPosition = posInfo.booking_info?.listing_id === selectedListing.id;
                                 const isBooked = posInfo.is_booked && !isMyPosition;
+                                const priceToShow = posInfo.is_booked ? posInfo.min_overbid : posInfo.base_price;
                                 
                                 return (
                                   <div
                                     key={posInfo.position}
                                     className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
                                       isMyPosition ? 'bg-purple-50 border-purple-400' :
-                                      isBooked ? 'bg-gray-100 border-gray-300 opacity-60' :
+                                      isBooked ? 'bg-orange-50 border-orange-300' :
                                       'bg-white border-gray-200 hover:border-purple-300 hover:shadow-md'
                                     }`}
                                   >
@@ -512,10 +525,17 @@ export default function OwnerDashboard() {
                                         {posInfo.position}
                                       </div>
                                       <div>
-                                        <div className="font-semibold text-lg">{posInfo.price} ₽</div>
+                                        <div className="font-semibold text-lg">
+                                          {priceToShow} ₽
+                                          {isBooked && (
+                                            <span className="text-xs text-orange-600 ml-2">
+                                              (сейчас {posInfo.current_bid}₽)
+                                            </span>
+                                          )}
+                                        </div>
                                         <div className="text-xs text-muted-foreground">
                                           {isMyPosition ? '✓ Ваша позиция' :
-                                           isBooked ? '✗ Занято' :
+                                           isBooked ? `Занято • Перебить +5₽` :
                                            '○ Свободно'}
                                         </div>
                                       </div>
@@ -523,17 +543,23 @@ export default function OwnerDashboard() {
                                     
                                     {isMyPosition ? (
                                       <Badge className="bg-purple-600">Активна</Badge>
-                                    ) : isBooked ? (
-                                      <Badge variant="secondary">Занято</Badge>
                                     ) : (
                                       <Button
                                         size="sm"
-                                        onClick={() => handleBookPosition(posInfo.position, posInfo.price)}
+                                        onClick={() => handleBookPosition(posInfo.position, priceToShow!)}
                                         disabled={isLoading}
-                                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                                        className={isBooked 
+                                          ? "bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+                                          : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                                        }
                                       >
                                         {isLoading && selectedPosition === posInfo.position ? (
                                           <Icon name="Loader2" size={16} className="animate-spin" />
+                                        ) : isBooked ? (
+                                          <>
+                                            <Icon name="TrendingUp" size={16} className="mr-1" />
+                                            Перебить
+                                          </>
                                         ) : (
                                           <>
                                             <Icon name="Check" size={16} className="mr-1" />
@@ -548,9 +574,15 @@ export default function OwnerDashboard() {
                             </div>
                           </div>
 
-                          <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg">
-                            <Icon name="Info" size={14} className="inline mr-1" />
-                            Бронирование действует до 00:00 по Москве. Бонусы списываются первыми.
+                          <div className="space-y-2">
+                            <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg">
+                              <Icon name="Info" size={14} className="inline mr-1" />
+                              Бронирование действует до 00:00 по Москве. Бонусы списываются первыми.
+                            </div>
+                            <div className="text-xs text-muted-foreground bg-orange-50 p-3 rounded-lg">
+                              <Icon name="TrendingUp" size={14} className="inline mr-1" />
+                              Можно перебить чужую ставку, доплатив +5₽. Предыдущий владелец опустится на следующую свободную позицию.
+                            </div>
                           </div>
                         </>
                       )}

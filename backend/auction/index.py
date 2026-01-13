@@ -4,14 +4,14 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime, timezone, timedelta
 
-def get_position_price(position: int, total_positions: int) -> int:
-    '''Расчет стоимости позиции: последнее место = 20₽, каждая позиция выше +5₽'''
+def get_base_price(position: int, total_positions: int) -> int:
+    '''Базовая стоимость позиции без учета перебивания'''
     base_price = 20
     step = 5
     return base_price + (total_positions - position) * step
 
 def handler(event: dict, context) -> dict:
-    '''API для аукционной системы бронирования позиций (обновляется в 00:00 МСК)'''
+    '''API для аукциона с перебиванием ставок (обновляется в 00:00 МСК)'''
     
     method = event.get('httpMethod', 'GET')
     
@@ -55,8 +55,7 @@ def handler(event: dict, context) -> dict:
                     ab.listing_id,
                     l.title as listing_title,
                     ab.bid_amount,
-                    ab.owner_id,
-                    ab.created_at::date as booked_date
+                    ab.owner_id
                 FROM auction_bids ab
                 JOIN listings l ON l.id = ab.listing_id
                 WHERE ab.city = %s 
@@ -76,15 +75,27 @@ def handler(event: dict, context) -> dict:
             
             positions = []
             for pos in range(1, total_positions + 1):
-                price = get_position_price(pos, total_positions)
-                position_data = {
-                    'position': pos,
-                    'price': price,
-                    'is_booked': pos in booked_positions
-                }
+                base_price = get_base_price(pos, total_positions)
                 
                 if pos in booked_positions:
-                    position_data['booking_info'] = booked_positions[pos]
+                    current_bid = booked_positions[pos]['paid_amount']
+                    min_overbid = current_bid + 5
+                    position_data = {
+                        'position': pos,
+                        'base_price': base_price,
+                        'current_bid': current_bid,
+                        'min_overbid': min_overbid,
+                        'is_booked': True,
+                        'booking_info': booked_positions[pos]
+                    }
+                else:
+                    position_data = {
+                        'position': pos,
+                        'base_price': base_price,
+                        'current_bid': None,
+                        'min_overbid': None,
+                        'is_booked': False
+                    }
                 
                 positions.append(position_data)
             
@@ -117,8 +128,9 @@ def handler(event: dict, context) -> dict:
                 listing_id = body.get('listing_id')
                 city = body.get('city')
                 target_position = body.get('target_position')
+                offered_amount = body.get('offered_amount')
                 
-                if not listing_id or not city or not target_position:
+                if not listing_id or not city or not target_position or not offered_amount:
                     return {
                         'statusCode': 400,
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -143,22 +155,22 @@ def handler(event: dict, context) -> dict:
                 """, (city,))
                 total_positions = cur.fetchone()['total']
                 
-                position_price = get_position_price(target_position, total_positions)
+                base_price = get_base_price(target_position, total_positions)
                 
                 cur.execute("SELECT balance, bonus_balance FROM owners WHERE id = %s", (owner_id,))
                 owner = cur.fetchone()
                 total_balance = owner['balance'] + owner['bonus_balance']
                 
-                if total_balance < position_price:
+                if total_balance < offered_amount:
                     return {
                         'statusCode': 400,
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                        'body': json.dumps({'error': f'Insufficient balance. Need {position_price} ₽'}),
+                        'body': json.dumps({'error': f'Insufficient balance. Need {offered_amount} ₽'}),
                         'isBase64Encoded': False
                     }
                 
                 cur.execute("""
-                    SELECT id, listing_id, owner_id
+                    SELECT id, listing_id, owner_id, bid_amount
                     FROM auction_bids 
                     WHERE city = %s 
                       AND position = %s 
@@ -169,12 +181,62 @@ def handler(event: dict, context) -> dict:
                 existing_bid = cur.fetchone()
                 
                 if existing_bid:
-                    return {
-                        'statusCode': 400,
-                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                        'body': json.dumps({'error': f'Position {target_position} already booked'}),
-                        'isBase64Encoded': False
-                    }
+                    min_required = existing_bid['bid_amount'] + 5
+                    if offered_amount < min_required:
+                        return {
+                            'statusCode': 400,
+                            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                            'body': json.dumps({'error': f'Bid too low. Minimum: {min_required} ₽'}),
+                            'isBase64Encoded': False
+                        }
+                    
+                    previous_owner_id = existing_bid['owner_id']
+                    previous_listing_id = existing_bid['listing_id']
+                    
+                    cur.execute("""
+                        UPDATE auction_bids 
+                        SET status = 'outbid'
+                        WHERE id = %s
+                    """, (existing_bid['id'],))
+                    
+                    lower_position = target_position + 1
+                    if lower_position <= total_positions:
+                        cur.execute("""
+                            SELECT position 
+                            FROM auction_bids
+                            WHERE city = %s 
+                              AND position >= %s
+                              AND status = 'active'
+                              AND created_at::date = CURRENT_DATE
+                            ORDER BY position ASC
+                        """, (city, lower_position))
+                        
+                        occupied_positions = [row['position'] for row in cur.fetchall()]
+                        
+                        while lower_position in occupied_positions:
+                            lower_position += 1
+                            if lower_position > total_positions:
+                                lower_position = total_positions
+                                break
+                        
+                        new_position_price = get_base_price(lower_position, total_positions)
+                        
+                        cur.execute("""
+                            INSERT INTO auction_bids (listing_id, owner_id, city, position, bid_amount, status)
+                            VALUES (%s, %s, %s, %s, %s, 'active')
+                        """, (previous_listing_id, previous_owner_id, city, lower_position, new_position_price))
+                        
+                        cur.execute("""
+                            UPDATE listings SET auction = %s WHERE id = %s
+                        """, (lower_position, previous_listing_id))
+                else:
+                    if offered_amount < base_price:
+                        return {
+                            'statusCode': 400,
+                            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                            'body': json.dumps({'error': f'Bid too low. Minimum: {base_price} ₽'}),
+                            'isBase64Encoded': False
+                        }
                 
                 cur.execute("""
                     SELECT id
@@ -185,16 +247,16 @@ def handler(event: dict, context) -> dict:
                       AND created_at::date = CURRENT_DATE
                 """, (listing_id, city))
                 
-                previous_bid = cur.fetchone()
-                if previous_bid:
+                my_previous_bid = cur.fetchone()
+                if my_previous_bid:
                     cur.execute("""
                         UPDATE auction_bids 
                         SET status = 'cancelled'
                         WHERE id = %s
-                    """, (previous_bid['id'],))
+                    """, (my_previous_bid['id'],))
                 
-                bonus_used = min(owner['bonus_balance'], position_price)
-                balance_used = position_price - bonus_used
+                bonus_used = min(owner['bonus_balance'], offered_amount)
+                balance_used = offered_amount - bonus_used
                 
                 cur.execute("""
                     UPDATE owners 
@@ -206,7 +268,7 @@ def handler(event: dict, context) -> dict:
                     INSERT INTO auction_bids (listing_id, owner_id, city, position, bid_amount, status)
                     VALUES (%s, %s, %s, %s, %s, 'active')
                     RETURNING id
-                """, (listing_id, owner_id, city, target_position, position_price))
+                """, (listing_id, owner_id, city, target_position, offered_amount))
                 
                 bid_id = cur.fetchone()['id']
                 
@@ -214,7 +276,7 @@ def handler(event: dict, context) -> dict:
                     INSERT INTO transactions (owner_id, amount, type, description, balance_after, related_bid_id)
                     VALUES (%s, %s, 'bid_payment', %s, 
                             (SELECT balance + bonus_balance FROM owners WHERE id = %s), %s)
-                """, (owner_id, -position_price, f'Бронирование позиции #{target_position} в городе {city}', owner_id, bid_id))
+                """, (owner_id, -offered_amount, f'Бронирование позиции #{target_position} в городе {city}', owner_id, bid_id))
                 
                 cur.execute("""
                     UPDATE listings SET auction = %s WHERE id = %s
@@ -227,7 +289,7 @@ def handler(event: dict, context) -> dict:
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'body': json.dumps({
                         'success': True,
-                        'message': f'Позиция #{target_position} успешно забронирована за {position_price} ₽',
+                        'message': f'Позиция #{target_position} успешно забронирована за {offered_amount} ₽',
                         'bid_id': bid_id
                     }),
                     'isBase64Encoded': False
