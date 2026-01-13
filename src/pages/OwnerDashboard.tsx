@@ -392,11 +392,11 @@ export default function OwnerDashboard() {
                   <div className="text-right">
                     <div className="text-sm text-muted-foreground mb-1">Баланс</div>
                     <div className="text-2xl font-bold text-purple-600 mb-1">
-                      {totalBalance} ₽
+                      {totalBalance}<span className="text-xl">₽</span>
                     </div>
                     <div className="text-xs text-muted-foreground space-y-0.5">
-                      <div>{owner.balance} ₽ основной</div>
-                      <div className="text-purple-600 font-medium">{owner.bonus_balance} ₽ бонусный</div>
+                      <div>{owner.balance}<span className="text-[10px]">₽</span> основной</div>
+                      <div className="text-purple-600 font-medium">{owner.bonus_balance}<span className="text-[10px]">₽</span> бонусный</div>
                     </div>
                   </div>
                   <div className="border-l border-purple-200 pl-6">
@@ -426,13 +426,16 @@ export default function OwnerDashboard() {
                         </Button>
                       </div>
                       <div className="space-y-1">
-                        <div className="text-xs text-purple-700 bg-purple-100 px-2 py-1 rounded">
-                          <Icon name="Gift" size={12} className="inline mr-1" />
-                          Используйте бонусный счет на все платные услуги сайта: продление/продвижение объекта, где 1 бонусный рубль равен 1 рублю
+                        <div className="text-[11px] text-purple-700 bg-purple-100 px-2 py-1 rounded leading-tight">
+                          <Icon name="Gift" size={11} className="inline mr-1" />
+                          Используйте бонусный счет на все платные услуги сайта: продление/продвижение объекта.
                         </div>
-                        <div className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded">
-                          <Icon name="TrendingUp" size={12} className="inline mr-1" />
-                          При пополнении баланса начисляется кэшбэк на бонусный счет 10%
+                        <div className="text-[11px] text-purple-700 bg-purple-100 px-2 py-1 rounded leading-tight">
+                          1 бонусный рубль равен 1 рублю.
+                        </div>
+                        <div className="text-[11px] text-green-700 bg-green-100 px-2 py-1 rounded leading-tight">
+                          <Icon name="TrendingUp" size={11} className="inline mr-1" />
+                          При пополнении баланса начисляется кэшбэк на бонусный счет 10%.
                         </div>
                       </div>
                     </div>
