@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
@@ -18,6 +19,8 @@ export default function AdminPanel() {
   const [selectedListing, setSelectedListing] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [adminInfo, setAdminInfo] = useState<any>(null);
+  const [selectedCity, setSelectedCity] = useState<string>('all');
+  const [selectedType, setSelectedType] = useState<string>('all');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -114,6 +117,21 @@ export default function AdminPanel() {
     loadListings();
   };
 
+  // Получение уникальных городов
+  const cities = useMemo(() => {
+    const uniqueCities = [...new Set(listings.map(l => l.city))].sort();
+    return uniqueCities;
+  }, [listings]);
+
+  // Фильтрация объектов
+  const filteredListings = useMemo(() => {
+    return listings.filter(listing => {
+      const cityMatch = selectedCity === 'all' || listing.city === selectedCity;
+      const typeMatch = selectedType === 'all' || listing.type === selectedType;
+      return cityMatch && typeMatch;
+    });
+  }, [listings, selectedCity, selectedType]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-purple-200 shadow-sm">
@@ -188,10 +206,51 @@ export default function AdminPanel() {
           <div className="flex items-center gap-4">
             <h2 className="text-3xl font-bold">Объекты</h2>
             <Badge variant="secondary" className="text-lg px-4 py-1">
-              {listings.length}
+              {filteredListings.length} из {listings.length}
             </Badge>
           </div>
           <div className="flex items-center gap-3">
+            <Select value={selectedCity} onValueChange={setSelectedCity}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Город" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <div className="flex items-center gap-2">
+                    <Icon name="MapPin" size={14} />
+                    Все города
+                  </div>
+                </SelectItem>
+                {cities.map(city => (
+                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Тип" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <div className="flex items-center gap-2">
+                    <Icon name="Building" size={14} />
+                    Все типы
+                  </div>
+                </SelectItem>
+                <SelectItem value="hotel">
+                  <div className="flex items-center gap-2">
+                    <Icon name="Hotel" size={14} />
+                    Отели
+                  </div>
+                </SelectItem>
+                <SelectItem value="apartment">
+                  <div className="flex items-center gap-2">
+                    <Icon name="Home" size={14} />
+                    Апартаменты
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
             <Button
               variant={showArchived ? 'default' : 'outline'}
               onClick={() => setShowArchived(!showArchived)}
@@ -215,7 +274,7 @@ export default function AdminPanel() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {listings.map((listing) => (
+            {filteredListings.map((listing) => (
               <Card key={listing.id} className={listing.is_archived ? 'opacity-60' : ''}>
                 <div className="relative">
                   {listing.image_url ? (
@@ -290,6 +349,24 @@ export default function AdminPanel() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {!isLoading && filteredListings.length === 0 && listings.length > 0 && (
+          <div className="text-center py-20">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-2xl font-bold mb-2">Объекты не найдены</h3>
+            <p className="text-muted-foreground mb-6">Попробуйте изменить фильтры</p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedCity('all');
+                setSelectedType('all');
+              }}
+            >
+              <Icon name="X" size={18} className="mr-2" />
+              Сбросить фильтры
+            </Button>
           </div>
         )}
 
