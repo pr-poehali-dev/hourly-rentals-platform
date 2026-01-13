@@ -40,6 +40,7 @@ export default function AdminOwnersTab({ token }: { token: string }) {
   const [selectedOwner, setSelectedOwner] = useState<Owner | null>(null);
   const [availableListings, setAvailableListings] = useState<Listing[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
   const [selectedListingIds, setSelectedListingIds] = useState<number[]>([]);
   const { toast } = useToast();
 
@@ -111,6 +112,7 @@ export default function AdminOwnersTab({ token }: { token: string }) {
     setSelectedOwner(owner);
     setShowAssignModal(true);
     setSearchQuery('');
+    setSelectedCity('all');
     setSelectedListingIds([]);
     try {
       const data = await api.getAvailableListings(token);
@@ -231,13 +233,18 @@ export default function AdminOwnersTab({ token }: { token: string }) {
     }
   };
 
+  const cities = Array.from(new Set(availableListings.map(l => l.city))).sort();
+
   const filteredListings = availableListings.filter((listing) => {
     const query = searchQuery.toLowerCase();
-    return (
+    const matchesSearch = 
       listing.title.toLowerCase().includes(query) ||
       listing.city.toLowerCase().includes(query) ||
-      listing.district.toLowerCase().includes(query)
-    );
+      listing.district.toLowerCase().includes(query);
+    
+    const matchesCity = selectedCity === 'all' || listing.city === selectedCity;
+    
+    return matchesSearch && matchesCity;
   });
 
   if (showAssignModal && selectedOwner) {
@@ -254,14 +261,33 @@ export default function AdminOwnersTab({ token }: { token: string }) {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="search">Поиск по названию или городу</Label>
-              <Input
-                id="search"
-                placeholder="Введите название отеля или город..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="city">Город</Label>
+                <select
+                  id="city"
+                  value={selectedCity}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                >
+                  <option value="all">Все города ({availableListings.length})</option>
+                  {cities.map(city => {
+                    const count = availableListings.filter(l => l.city === city).length;
+                    return (
+                      <option key={city} value={city}>{city} ({count})</option>
+                    );
+                  })}
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="search">Поиск по названию</Label>
+                <Input
+                  id="search"
+                  placeholder="Введите название отеля..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
 
             {selectedListingIds.length > 0 && (
