@@ -627,7 +627,7 @@ export default function OwnerDashboard() {
             </div>
 
             <div className="lg:col-span-2 space-y-6">
-              {selectedListing && (
+              {selectedListing ? (
                 <>
                   <Card>
                     <CardHeader>
