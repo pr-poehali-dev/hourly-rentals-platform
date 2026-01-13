@@ -71,6 +71,7 @@ export default function AdminLogin() {
                   value={login}
                   onChange={(e) => setLogin(e.target.value)}
                   className="pl-10"
+                  autoComplete="username"
                   required
                 />
               </div>
