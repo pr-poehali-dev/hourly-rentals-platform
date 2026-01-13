@@ -14,7 +14,7 @@ const API_URLS = {
 
 export const api = {
   // Авторизация
-  login: async (email: string, password: string) => {
+  login: async (login: string, password: string) => {
     try {
       const response = await fetch(API_URLS.adminAuth, {
         method: 'POST',
@@ -23,7 +23,7 @@ export const api = {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: login, password }),
       });
       
       if (!response.ok) {

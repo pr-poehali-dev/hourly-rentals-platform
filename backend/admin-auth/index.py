@@ -34,6 +34,8 @@ def handler(event: dict, context) -> dict:
         login = body.get('email') or body.get('login')  # Поддержка логина и email
         password = body.get('password')
         
+        print(f"[AUTH] Попытка входа - Логин: {login}, Пароль: {password}")
+        
         if not login or not password:
             return {
                 'statusCode': 400,
@@ -53,6 +55,8 @@ def handler(event: dict, context) -> dict:
             f"SELECT id, email, name, role, permissions, is_active FROM t_p39732784_hourly_rentals_platf.admins WHERE (login = '{login_escaped}' OR email = '{login_escaped}') AND password_hash = '{password_escaped}' AND is_active = true"
         )
         admin = cur.fetchone()
+        
+        print(f"[AUTH] Результат поиска: {admin}")
         
         if not admin:
             return {
