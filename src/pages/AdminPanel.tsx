@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
@@ -21,6 +23,8 @@ export default function AdminPanel() {
   const [adminInfo, setAdminInfo] = useState<any>(null);
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
+  const [subscriptionDialog, setSubscriptionDialog] = useState<{ open: boolean; listing: any | null }>({ open: false, listing: null });
+  const [subscriptionDays, setSubscriptionDays] = useState<number>(30);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -115,6 +119,55 @@ export default function AdminPanel() {
     setShowForm(false);
     setSelectedListing(null);
     loadListings();
+  };
+
+  const handleSetSubscription = async () => {
+    if (!subscriptionDialog.listing || subscriptionDays < 1) {
+      toast({
+        title: 'Ошибка',
+        description: 'Укажите количество дней',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await api.adminSetSubscription(token!, subscriptionDialog.listing.id, subscriptionDays);
+      toast({
+        title: 'Успешно',
+        description: `Подписка установлена на ${subscriptionDays} дней`,
+      });
+      setSubscriptionDialog({ open: false, listing: null });
+      setSubscriptionDays(30);
+      loadListings();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось установить подписку',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const formatSubscriptionStatus = (listing: any) => {
+    if (!listing.subscription_expires_at) {
+      return { text: 'Не активна', variant: 'destructive' as const, daysLeft: null };
+    }
+    
+    const now = new Date();
+    const expiresAt = new Date(listing.subscription_expires_at);
+    const diff = expiresAt.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft <= 0) {
+      return { text: 'Истекла', variant: 'destructive' as const, daysLeft: 0 };
+    } else if (daysLeft <= 3) {
+      return { text: `${daysLeft}д`, variant: 'destructive' as const, daysLeft };
+    } else if (daysLeft <= 7) {
+      return { text: `${daysLeft}д`, variant: 'default' as const, daysLeft };
+    } else {
+      return { text: `${daysLeft}д`, variant: 'secondary' as const, daysLeft };
+    }
   };
 
   // Получение уникальных городов
@@ -355,6 +408,12 @@ export default function AdminPanel() {
                             <span className="text-sm text-muted-foreground">Номеров:</span>
                             <span className="font-semibold">{listing.rooms?.length || 0}</span>
                           </div>
+                          <div className="flex items-center justify-between pt-2 border-t">
+                            <span className="text-sm text-muted-foreground">Подписка:</span>
+                            <Badge variant={formatSubscriptionStatus(listing).variant}>
+                              {formatSubscriptionStatus(listing).text}
+                            </Badge>
+                          </div>
                           <div className="flex gap-2 mt-4">
                             <Button
                               variant="outline"
@@ -364,6 +423,14 @@ export default function AdminPanel() {
                             >
                               <Icon name="Edit" size={16} className="mr-1" />
                               Редактировать
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSubscriptionDialog({ open: true, listing })}
+                              title="Установить подписку"
+                            >
+                              <Icon name="Clock" size={16} />
                             </Button>
                             {!listing.is_archived && (
                               <Button
@@ -384,6 +451,52 @@ export default function AdminPanel() {
             ))}
           </div>
         )}
+
+        <Dialog open={subscriptionDialog.open} onOpenChange={(open) => setSubscriptionDialog({ open, listing: subscriptionDialog.listing })}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Установить подписку</DialogTitle>
+              <DialogDescription>
+                {subscriptionDialog.listing?.title}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              {subscriptionDialog.listing?.subscription_expires_at && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="text-sm text-blue-900">
+                    Текущая подписка: <strong>{formatSubscriptionStatus(subscriptionDialog.listing).text}</strong>
+                  </div>
+                  <div className="text-xs text-blue-700 mt-1">
+                    Новое время добавится к существующему
+                  </div>
+                </div>
+              )}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Количество дней</label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={subscriptionDays}
+                  onChange={(e) => setSubscriptionDays(Number(e.target.value))}
+                  placeholder="30"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => setSubscriptionDays(30)}>30 дней</Button>
+                <Button size="sm" variant="outline" onClick={() => setSubscriptionDays(90)}>90 дней</Button>
+                <Button size="sm" variant="outline" onClick={() => setSubscriptionDays(365)}>1 год</Button>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setSubscriptionDialog({ open: false, listing: null })} className="flex-1">
+                Отмена
+              </Button>
+              <Button onClick={handleSetSubscription} className="flex-1">
+                Установить
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {!isLoading && filteredListings.length === 0 && listings.length > 0 && (
           <div className="text-center py-20">

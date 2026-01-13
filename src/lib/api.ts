@@ -317,4 +317,20 @@ export const api = {
     });
     return response.json();
   },
+
+  adminSetSubscription: async (token: string, listingId: number, days: number) => {
+    const response = await fetch(API_URLS.subscription, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action: 'admin_set_subscription', listing_id: listingId, days }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
 };

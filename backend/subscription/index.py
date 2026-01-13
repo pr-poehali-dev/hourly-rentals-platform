@@ -23,7 +23,7 @@ def handler(event: dict, context) -> dict:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-Authorization'
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Authorization'
             },
             'body': '',
             'isBase64Encoded': False
@@ -88,7 +88,61 @@ def handler(event: dict, context) -> dict:
             body = json.loads(event.get('body', '{}'))
             action = body.get('action')
             
-            if action == 'extend_subscription':
+            if action == 'admin_set_subscription':
+                # Установка подписки администратором
+                listing_id = body.get('listing_id')
+                days = body.get('days')
+                
+                if not listing_id or not days:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Missing required fields'}),
+                        'isBase64Encoded': False
+                    }
+                
+                cur.execute("""
+                    SELECT id, subscription_expires_at
+                    FROM listings 
+                    WHERE id = %s
+                """, (listing_id,))
+                
+                listing = cur.fetchone()
+                
+                if not listing:
+                    return {
+                        'statusCode': 404,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Listing not found'}),
+                        'isBase64Encoded': False
+                    }
+                
+                # Если есть активная подписка, добавляем к ней дни
+                if listing['subscription_expires_at'] and listing['subscription_expires_at'] > datetime.now():
+                    new_expires_at = listing['subscription_expires_at'] + timedelta(days=days)
+                else:
+                    new_expires_at = datetime.now() + timedelta(days=days)
+                
+                cur.execute("""
+                    UPDATE listings 
+                    SET subscription_expires_at = %s, is_archived = FALSE
+                    WHERE id = %s
+                """, (new_expires_at, listing_id))
+                
+                conn.commit()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'message': f'Подписка установлена на {days} дней',
+                        'expires_at': new_expires_at.isoformat()
+                    }, default=str),
+                    'isBase64Encoded': False
+                }
+            
+            elif action == 'extend_subscription':
                 listing_id = body.get('listing_id')
                 owner_id = body.get('owner_id')
                 days = body.get('days', 30)
