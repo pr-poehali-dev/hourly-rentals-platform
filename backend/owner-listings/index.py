@@ -34,15 +34,6 @@ def handler(event: dict, context) -> dict:
     
     auth_header = event.get('headers', {}).get('X-Authorization', '')
     token = auth_header.replace('Bearer ', '') if auth_header else ''
-    admin = verify_token(token)
-    
-    if not admin:
-        return {
-            'statusCode': 401,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Требуется авторизация'}),
-            'isBase64Encoded': False
-        }
     
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -52,15 +43,24 @@ def handler(event: dict, context) -> dict:
             owner_id = event.get('queryStringParameters', {}).get('owner_id')
             
             if owner_id:
-                # Получить отели конкретного владельца
+                # Получить отели конкретного владельца (доступно всем с токеном)
                 cur.execute("""
-                    SELECT id, title, city, district, owner_id, is_archived
+                    SELECT id, title, city, district, owner_id, is_archived, auction
                     FROM listings
-                    WHERE owner_id = %s
+                    WHERE owner_id = %s AND is_archived = FALSE
                     ORDER BY title
                 """, (owner_id,))
             else:
-                # Получить все отели для привязки
+                # Получить все отели для привязки (только для админа)
+                admin = verify_token(token)
+                if not admin:
+                    return {
+                        'statusCode': 401,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Требуется авторизация администратора'}),
+                        'isBase64Encoded': False
+                    }
+                
                 cur.execute("""
                     SELECT 
                         l.id, l.title, l.city, l.district, l.owner_id, l.is_archived,
@@ -81,6 +81,15 @@ def handler(event: dict, context) -> dict:
             }
         
         elif method == 'PATCH':
+            # PATCH требует авторизации админа
+            admin = verify_token(token)
+            if not admin:
+                return {
+                    'statusCode': 401,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Требуется авторизация администратора'}),
+                    'isBase64Encoded': False
+                }
             body = json.loads(event.get('body', '{}'))
             listing_id = body.get('listing_id')
             owner_id = body.get('owner_id')

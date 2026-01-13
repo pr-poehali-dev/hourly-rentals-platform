@@ -99,8 +99,7 @@ export default function OwnerDashboard() {
 
   const loadOwnerListings = async () => {
     try {
-      const response = await api.getListings(token!, false);
-      const ownerListings = response.filter((l: any) => l.owner_id === parseInt(ownerId!));
+      const ownerListings = await api.getOwnerListings(token!, parseInt(ownerId!));
       setListings(ownerListings);
 
       if (ownerListings.length > 0) {

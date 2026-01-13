@@ -39,13 +39,21 @@ export const api = {
     }
   },
 
-  // Получение списка объектов
+  // Получение списка объектов (для админа)
   getListings: async (token: string, showArchived = false) => {
     const url = showArchived 
       ? `${API_URLS.adminListings}?archived=true`
       : API_URLS.adminListings;
     
     const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    return response.json();
+  },
+
+  // Получение объектов владельца
+  getOwnerListings: async (token: string, ownerId: number) => {
+    const response = await fetch(`${API_URLS.ownerListings}?owner_id=${ownerId}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });
     return response.json();
