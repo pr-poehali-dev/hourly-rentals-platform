@@ -41,6 +41,7 @@ def handler(event: dict, context) -> dict:
     try:
         if method == 'GET':
             owner_id = event.get('queryStringParameters', {}).get('owner_id')
+            print(f'GET request for owner_id: {owner_id}')
             
             if owner_id:
                 # Получить отели конкретного владельца (доступно всем с токеном)
@@ -50,6 +51,8 @@ def handler(event: dict, context) -> dict:
                     WHERE owner_id = %s AND is_archived = FALSE
                     ORDER BY title
                 """, (owner_id,))
+                listings = cur.fetchall()
+                print(f'Found {len(listings)} listings for owner {owner_id}')
             else:
                 # Получить все отели для привязки (только для админа)
                 admin = verify_token(token)
@@ -70,8 +73,7 @@ def handler(event: dict, context) -> dict:
                     WHERE l.is_archived = FALSE
                     ORDER BY l.title
                 """)
-            
-            listings = cur.fetchall()
+                listings = cur.fetchall()
             
             return {
                 'statusCode': 200,

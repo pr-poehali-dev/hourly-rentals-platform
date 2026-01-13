@@ -99,7 +99,9 @@ export default function OwnerDashboard() {
 
   const loadOwnerListings = async () => {
     try {
+      console.log('Loading listings for owner:', ownerId);
       const ownerListings = await api.getOwnerListings(token!, parseInt(ownerId!));
+      console.log('Received listings:', ownerListings);
       setListings(ownerListings);
 
       if (ownerListings.length > 0) {
