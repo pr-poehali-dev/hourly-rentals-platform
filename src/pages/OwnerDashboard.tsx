@@ -55,12 +55,23 @@ interface Stats {
   };
 }
 
+interface Transaction {
+  id: number;
+  amount: number;
+  type: string;
+  description: string;
+  balance_after: number;
+  created_at: string;
+  related_bid_id: number | null;
+}
+
 export default function OwnerDashboard() {
   const [owner, setOwner] = useState<Owner | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [auctionInfo, setAuctionInfo] = useState<AuctionInfo | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [bidAmount, setBidAmount] = useState('');
   const [topupAmount, setTopupAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -83,6 +94,7 @@ export default function OwnerDashboard() {
     }
 
     loadOwnerListings();
+    loadTransactions();
   }, [token, ownerId, navigate]);
 
   const loadOwnerListings = async () => {
@@ -116,6 +128,15 @@ export default function OwnerDashboard() {
       setStats(statistics);
     } catch (error) {
       console.error('Failed to load stats:', error);
+    }
+  };
+
+  const loadTransactions = async () => {
+    try {
+      const response = await api.getOwnerTransactions(token!, parseInt(ownerId!), 50);
+      setTransactions(response.transactions || []);
+    } catch (error) {
+      console.error('Failed to load transactions:', error);
     }
   };
 
@@ -323,43 +344,68 @@ export default function OwnerDashboard() {
             <div className="lg:col-span-1 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Пополнить баланс</CardTitle>
-                  <CardDescription className="flex items-center gap-1 text-xs">
-                    <Icon name="CreditCard" size={14} />
-                    Оплата картой через T-Pay (Тинькофф)
-                  </CardDescription>
+                  <CardTitle>История операций</CardTitle>
+                  <CardDescription>Последние 50 транзакций</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Быстрое пополнение</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[100, 500, 1000, 5000].map((amount) => (
-                        <Button
-                          key={amount}
-                          variant="outline"
-                          onClick={async () => {
-                            try {
-                              const response = await api.createPayment(owner.id, amount);
-                              if (response.error) {
-                                throw new Error(response.error);
-                              }
-                              window.location.href = response.confirmation_url;
-                            } catch (error: any) {
-                              toast({
-                                title: 'Ошибка',
-                                description: error.message || 'Не удалось создать платёж',
-                                variant: 'destructive',
-                              });
-                            }
-                          }}
+                <CardContent>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {transactions.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Icon name="Receipt" size={48} className="mx-auto mb-2 opacity-20" />
+                        <p>Операций пока нет</p>
+                      </div>
+                    ) : (
+                      transactions.map((tx) => (
+                        <div
+                          key={tx.id}
+                          className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
                         >
-                          {amount} ₽
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t text-xs text-muted-foreground text-center">
-                    Безопасная оплата банковской картой
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              tx.type === 'deposit' ? 'bg-green-100' :
+                              tx.type === 'bonus' ? 'bg-purple-100' :
+                              'bg-red-100'
+                            }`}>
+                              <Icon
+                                name={
+                                  tx.type === 'deposit' ? 'ArrowDownToLine' :
+                                  tx.type === 'bonus' ? 'Gift' :
+                                  'ArrowUpFromLine'
+                                }
+                                size={18}
+                                className={
+                                  tx.type === 'deposit' ? 'text-green-600' :
+                                  tx.type === 'bonus' ? 'text-purple-600' :
+                                  'text-red-600'
+                                }
+                              />
+                            </div>
+                            <div>
+                              <div className="font-medium">{tx.description}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {new Date(tx.created_at).toLocaleString('ru-RU', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`text-lg font-bold ${
+                              tx.type === 'deposit' || tx.type === 'bonus' ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {tx.type === 'deposit' || tx.type === 'bonus' ? '+' : '-'}{Math.abs(tx.amount)} ₽
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Баланс: {tx.balance_after} ₽
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
