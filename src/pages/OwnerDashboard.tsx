@@ -368,43 +368,55 @@ export default function OwnerDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Card className="px-4 py-3">
-                <div className="flex items-center gap-4">
+              <Card className="px-6 py-4 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <div className="text-sm text-muted-foreground">Баланс</div>
-                    <div className="text-xl font-bold text-purple-600">
+                    <div className="text-sm text-muted-foreground mb-1">Баланс</div>
+                    <div className="text-2xl font-bold text-purple-600 mb-1">
                       {totalBalance} ₽
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {owner.balance} ₽ + {owner.bonus_balance} бонусных
+                    <div className="text-xs text-muted-foreground space-y-0.5">
+                      <div>{owner.balance} ₽ основной</div>
+                      <div className="text-purple-600 font-medium">{owner.bonus_balance} ₽ бонусный</div>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        placeholder="Сумма"
-                        value={topupAmount}
-                        onChange={(e) => setTopupAmount(e.target.value)}
-                        className="w-28"
-                        min="100"
-                      />
-                      <Button
-                        onClick={handleTopup}
-                        disabled={isTopupLoading}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        {isTopupLoading ? (
-                          <Icon name="Loader2" size={16} className="animate-spin" />
-                        ) : (
-                          <>
-                            <Icon name="Wallet" size={16} className="mr-1" />
-                            Пополнить
-                          </>
-                        )}
-                      </Button>
+                  <div className="border-l border-purple-200 pl-6">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          placeholder="Сумма"
+                          value={topupAmount}
+                          onChange={(e) => setTopupAmount(e.target.value)}
+                          className="w-32 bg-white"
+                          min="100"
+                        />
+                        <Button
+                          onClick={handleTopup}
+                          disabled={isTopupLoading}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {isTopupLoading ? (
+                            <Icon name="Loader2" size={16} className="animate-spin" />
+                          ) : (
+                            <>
+                              <Icon name="Wallet" size={16} className="mr-1" />
+                              Пополнить
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-xs text-purple-700 bg-purple-100 px-2 py-1 rounded">
+                          <Icon name="Gift" size={12} className="inline mr-1" />
+                          Используйте бонусный счет на все платные услуги сайта: продление/продвижение объекта, где 1 бонусный рубль равен 1 рублю
+                        </div>
+                        <div className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded">
+                          <Icon name="TrendingUp" size={12} className="inline mr-1" />
+                          При пополнении баланса начисляется кэшбэк на бонусный счет 10%
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-xs text-muted-foreground text-center">мин. 100₽</span>
                   </div>
                 </div>
               </Card>
