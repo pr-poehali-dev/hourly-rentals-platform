@@ -11,6 +11,7 @@ const API_URLS = {
   statistics: 'https://functions.poehali.dev/0b408e53-8bd4-4f19-a1b5-9403bb03cffd',
   payment: 'https://functions.poehali.dev/d3177c56-4fe4-4a52-a878-e17cca7a1397',
   ownerTransactions: 'https://functions.poehali.dev/d65e7c1b-75b3-4a33-965b-70ee3a543a50',
+  subscription: 'https://functions.poehali.dev/083c2fbe-03b3-474d-accd-281d4089bb06',
 };
 
 export const api = {
@@ -296,6 +297,24 @@ export const api = {
       const errorData = await response.json().catch(() => ({ error: 'Network error' }));
       throw new Error(errorData.error || `HTTP ${response.status}`);
     }
+    return response.json();
+  },
+
+  // Подписка
+  getSubscriptionInfo: async (listingId: number) => {
+    const response = await fetch(`${API_URLS.subscription}?listing_id=${listingId}`);
+    return response.json();
+  },
+
+  extendSubscription: async (token: string, ownerId: number, listingId: number, days: number) => {
+    const response = await fetch(API_URLS.subscription, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action: 'extend_subscription', owner_id: ownerId, listing_id: listingId, days }),
+    });
     return response.json();
   },
 };

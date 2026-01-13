@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Get subscription info",
+      "method": "GET",
+      "path": "/?listing_id=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "listing": {},
+        "price_per_month": "number"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

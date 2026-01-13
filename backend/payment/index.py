@@ -131,15 +131,26 @@ def handler(event: dict, context) -> dict:
                 amount_value = payment_data.get('amount', {}).get('value', '0')
                 amount = int(float(amount_value))
                 
+                cashback = int(amount * 0.10)
+                
                 cur.execute("""
-                    UPDATE owners SET balance = balance + %s WHERE id = %s
-                """, (amount, owner_id))
+                    UPDATE owners 
+                    SET balance = balance + %s, bonus_balance = bonus_balance + %s 
+                    WHERE id = %s
+                """, (amount, cashback, owner_id))
                 
                 cur.execute("""
                     INSERT INTO transactions (owner_id, amount, type, description, balance_after)
                     VALUES (%s, %s, 'deposit', 'Пополнение баланса через ЮKassa', 
                             (SELECT balance + bonus_balance FROM owners WHERE id = %s))
                 """, (owner_id, amount, owner_id))
+                
+                if cashback > 0:
+                    cur.execute("""
+                        INSERT INTO transactions (owner_id, amount, type, description, balance_after)
+                        VALUES (%s, %s, 'bonus', 'Кэшбэк 10% от пополнения', 
+                                (SELECT balance + bonus_balance FROM owners WHERE id = %s))
+                    """, (owner_id, cashback, owner_id))
                 
                 conn.commit()
             
