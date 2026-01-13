@@ -482,55 +482,57 @@ export default function AdminOwnersTab({ token }: { token: string }) {
           {owners.map((owner) => (
             <Card key={owner.id} className={owner.is_archived ? 'opacity-60' : ''}>
               <CardContent className="pt-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-3 flex-1">
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-xl font-bold">{owner.full_name}</h3>
-                        {owner.is_archived && (
-                          <Badge variant="secondary">Архив</Badge>
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2 flex-1">
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-xl font-bold">{owner.full_name}</h3>
+                          {owner.is_archived && (
+                            <Badge variant="secondary">Архив</Badge>
+                          )}
+                        </div>
+                        <p className="text-muted-foreground">{owner.email}</p>
+                        {owner.login && (
+                          <p className="text-sm text-muted-foreground">Логин: {owner.login}</p>
                         )}
                       </div>
-                      <p className="text-muted-foreground">{owner.email}</p>
-                      {owner.login && (
-                        <p className="text-sm text-muted-foreground">Логин: {owner.login}</p>
-                      )}
-                    </div>
 
-                    <div className="flex items-center gap-6 text-sm">
-                      {owner.phone && (
+                      <div className="flex items-center gap-6 text-sm">
+                        {owner.phone && (
+                          <div className="flex items-center gap-2">
+                            <Icon name="Phone" size={14} />
+                            <span>{owner.phone}</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-2">
-                          <Icon name="Phone" size={14} />
-                          <span>{owner.phone}</span>
+                          <Icon name="Hotel" size={14} />
+                          <span>Отелей: {owner.hotels_count}</span>
                         </div>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <Icon name="Hotel" size={14} />
-                        <span>Отелей: {owner.hotels_count}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Icon name="Wallet" size={14} />
-                        <span>Баланс: {owner.balance} ₽</span>
-                      </div>
-                      {owner.bonus_balance > 0 && (
-                        <div className="flex items-center gap-2 text-green-600">
-                          <Icon name="Gift" size={14} />
-                          <span>Бонусы: {owner.bonus_balance} ₽</span>
+                        <div className="flex items-center gap-2">
+                          <Icon name="Wallet" size={14} />
+                          <span>Баланс: {owner.balance} ₽</span>
                         </div>
-                      )}
-                    </div>
+                        {owner.bonus_balance > 0 && (
+                          <div className="flex items-center gap-2 text-green-600">
+                            <Icon name="Gift" size={14} />
+                            <span>Бонусы: {owner.bonus_balance} ₽</span>
+                          </div>
+                        )}
+                      </div>
 
-                    <div className="text-xs text-muted-foreground">
-                      Регистрация: {new Date(owner.created_at).toLocaleDateString('ru-RU')}
-                      {owner.last_login && (
-                        <> • Последний вход: {new Date(owner.last_login).toLocaleDateString('ru-RU')}</>
-                      )}
+                      <div className="text-xs text-muted-foreground">
+                        Регистрация: {new Date(owner.created_at).toLocaleDateString('ru-RU')}
+                        {owner.last_login && (
+                          <> • Последний вход: {new Date(owner.last_login).toLocaleDateString('ru-RU')}</>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 pt-2 border-t">
                     <Button
-                      variant="outline"
+                      className="bg-purple-600 hover:bg-purple-700"
                       size="sm"
                       onClick={() => handleAssignListings(owner)}
                     >
