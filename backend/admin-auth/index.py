@@ -31,14 +31,14 @@ def handler(event: dict, context) -> dict:
     
     try:
         body = json.loads(event.get('body', '{}'))
-        email = body.get('email')
+        login = body.get('email') or body.get('login')  # Поддержка логина и email
         password = body.get('password')
         
-        if not email or not password:
+        if not login or not password:
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Email и пароль обязательны'}),
+                'body': json.dumps({'error': 'Логин и пароль обязательны'}),
                 'isBase64Encoded': False
             }
         
@@ -46,15 +46,12 @@ def handler(event: dict, context) -> dict:
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
         
-        # Проверка администратора
+        # Проверка администратора (по логину или email)
         cur.execute(
-            "SELECT id, email, name FROM admins WHERE email = %s AND password_hash = %s",
-            (email, password)
+            "SELECT id, email, name, role, permissions, is_active FROM t_p39732784_hourly_rentals_platf.admins WHERE (login = %s OR email = %s) AND password_hash = %s AND is_active = true",
+            (login, login, password)
         )
         admin = cur.fetchone()
-        
-        cur.close()
-        conn.close()
         
         if not admin:
             return {
@@ -64,12 +61,24 @@ def handler(event: dict, context) -> dict:
                 'isBase64Encoded': False
             }
         
-        # Генерация JWT токена
+        # Обновление времени последнего входа
+        cur.execute(
+            "UPDATE t_p39732784_hourly_rentals_platf.admins SET last_login = CURRENT_TIMESTAMP WHERE id = %s",
+            (admin[0],)
+        )
+        conn.commit()
+        
+        cur.close()
+        conn.close()
+        
+        # Генерация JWT токена с ролью и правами
         jwt_secret = os.environ['JWT_SECRET']
         token = jwt.encode({
             'admin_id': admin[0],
             'email': admin[1],
             'name': admin[2],
+            'role': admin[3],
+            'permissions': admin[4],
             'exp': datetime.utcnow() + timedelta(days=7)
         }, jwt_secret, algorithm='HS256')
         
@@ -81,7 +90,9 @@ def handler(event: dict, context) -> dict:
                 'admin': {
                     'id': admin[0],
                     'email': admin[1],
-                    'name': admin[2]
+                    'name': admin[2],
+                    'role': admin[3],
+                    'permissions': admin[4]
                 }
             }),
             'isBase64Encoded': False

@@ -16,16 +16,34 @@ export default function AdminPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedListing, setSelectedListing] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
+  const [adminInfo, setAdminInfo] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const token = localStorage.getItem('adminToken');
+  
+  // Проверка прав доступа
+  const hasPermission = (permission: string) => {
+    if (!adminInfo?.permissions) return false;
+    return adminInfo.permissions[permission] === true;
+  };
 
   useEffect(() => {
     if (!token) {
       navigate('/admin/login');
       return;
     }
+    
+    // Загрузка информации об администраторе из токена
+    try {
+      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      setAdminInfo(tokenPayload);
+    } catch (e) {
+      console.error('Invalid token', e);
+      handleLogout();
+      return;
+    }
+    
     loadListings();
   }, [showArchived, token, navigate]);
 
@@ -106,7 +124,9 @@ export default function AdminPanel() {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   Админ-панель 120 минут
                 </h1>
-                <p className="text-xs text-muted-foreground">Управление платформой</p>
+                <p className="text-xs text-muted-foreground">
+                  {adminInfo?.name} • {adminInfo?.role === 'superadmin' ? 'Суперадминистратор' : 'Сотрудник'}
+                </p>
               </div>
             </div>
             <Button variant="outline" onClick={handleLogout}>
@@ -119,22 +139,26 @@ export default function AdminPanel() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-6 border-b">
-          <Button
-            variant={activeTab === 'listings' ? 'default' : 'ghost'}
-            onClick={() => setActiveTab('listings')}
-            className="rounded-b-none"
-          >
-            <Icon name="Hotel" size={18} className="mr-2" />
-            Объекты
-          </Button>
-          <Button
-            variant={activeTab === 'owners' ? 'default' : 'ghost'}
-            onClick={() => setActiveTab('owners')}
-            className="rounded-b-none"
-          >
-            <Icon name="Users" size={18} className="mr-2" />
-            Владельцы
-          </Button>
+          {hasPermission('listings') && (
+            <Button
+              variant={activeTab === 'listings' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('listings')}
+              className="rounded-b-none"
+            >
+              <Icon name="Hotel" size={18} className="mr-2" />
+              Объекты
+            </Button>
+          )}
+          {hasPermission('owners') && (
+            <Button
+              variant={activeTab === 'owners' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('owners')}
+              className="rounded-b-none"
+            >
+              <Icon name="Users" size={18} className="mr-2" />
+              Владельцы
+            </Button>
+          )}
         </div>
 
         {showForm ? (
@@ -143,9 +167,9 @@ export default function AdminPanel() {
             token={token!}
             onClose={handleFormClose}
           />
-        ) : activeTab === 'owners' ? (
+        ) : activeTab === 'owners' && hasPermission('owners') ? (
           <AdminOwnersTab token={token!} />
-        ) : (
+        ) : hasPermission('listings') ? (
         <>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
