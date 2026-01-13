@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
-import HotelSubscriptionCard from '@/components/HotelSubscriptionCard';
+import OwnerDashboardHeader from '@/components/OwnerDashboardHeader';
+import OwnerOverviewTab from '@/components/OwnerOverviewTab';
+import OwnerAuctionTab from '@/components/OwnerAuctionTab';
 
 interface Owner {
   id: number;
@@ -98,7 +96,6 @@ export default function OwnerDashboard() {
   const [cashbackAmount, setCashbackAmount] = useState(0);
   const [selectedPosition, setSelectedPosition] = useState<number | null>(null);
   const [subscriptionInfo, setSubscriptionInfo] = useState<Map<number, SubscriptionInfo>>(new Map());
-  const [topupAmount, setTopupAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTopupLoading, setIsTopupLoading] = useState(false);
   const [timeUntilReset, setTimeUntilReset] = useState('');
@@ -276,9 +273,9 @@ export default function OwnerDashboard() {
     }
   };
 
-  const handleTopup = async () => {
-    const amount = parseInt(topupAmount);
-    if (!amount || amount < 100) {
+  const handleTopup = async (amount: string) => {
+    const amountNum = parseInt(amount);
+    if (!amountNum || amountNum < 100) {
       toast({
         title: 'Ошибка',
         description: 'Минимальная сумма пополнения: 100 ₽',
@@ -290,7 +287,7 @@ export default function OwnerDashboard() {
     setIsTopupLoading(true);
 
     try {
-      const cashback = Math.floor(amount * 0.1);
+      const cashback = Math.floor(amountNum * 0.1);
       setCashbackAmount(cashback);
       setShowCashbackAnimation(true);
       
@@ -298,7 +295,7 @@ export default function OwnerDashboard() {
         setShowCashbackAnimation(false);
       }, 3000);
 
-      const response = await api.createPayment(parseInt(ownerId!), amount);
+      const response = await api.createPayment(parseInt(ownerId!), amountNum);
 
       if (response.error) {
         throw new Error(response.error);
@@ -362,94 +359,16 @@ export default function OwnerDashboard() {
     </div>;
   }
 
-  const totalBalance = owner.balance + owner.bonus_balance;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-purple-200 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="text-4xl">⏰</div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Личный кабинет
-                </h1>
-                <p className="text-xs text-muted-foreground">{owner.full_name}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Card className="px-6 py-4 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200 relative">
-                {showCashbackAnimation && (
-                  <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
-                    <div className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
-                      <Icon name="Gift" size={20} />
-                      <span className="font-bold">+{cashbackAmount}₽ кэшбэк!</span>
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground mb-1">Баланс</div>
-                    <div className="text-2xl font-bold text-purple-600 mb-1">
-                      {totalBalance}<span className="text-xl">₽</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground space-y-0.5">
-                      <div>{owner.balance}<span className="text-[10px]">₽</span> основной</div>
-                      <div className="text-purple-600 font-medium">{owner.bonus_balance}<span className="text-[10px]">₽</span> бонусный</div>
-                    </div>
-                  </div>
-                  <div className="border-l border-purple-200 pl-6">
-                    <div className="flex flex-col gap-2">
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          placeholder="Сумма"
-                          value={topupAmount}
-                          onChange={(e) => setTopupAmount(e.target.value)}
-                          className="w-32 bg-white"
-                          min="100"
-                        />
-                        <Button
-                          onClick={handleTopup}
-                          disabled={isTopupLoading}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          {isTopupLoading ? (
-                            <Icon name="Loader2" size={16} className="animate-spin" />
-                          ) : (
-                            <>
-                              <Icon name="Wallet" size={16} className="mr-1" />
-                              Пополнить
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="text-[11px] text-purple-700 bg-purple-100 px-2 py-1 rounded leading-tight">
-                          <Icon name="Gift" size={11} className="inline mr-1" />
-                          Используйте бонусный счет на все платные услуги сайта: продление/продвижение объекта.
-                        </div>
-                        <div className="text-[11px] text-purple-700 bg-purple-100 px-2 py-1 rounded leading-tight">
-                          1 бонусный рубль равен 1 рублю.
-                        </div>
-                        <div className="text-[11px] text-green-700 bg-green-100 px-2 py-1 rounded leading-tight">
-                          <Icon name="TrendingUp" size={11} className="inline mr-1" />
-                          При пополнении баланса начисляется кэшбэк на бонусный счет 10%.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-              <Button variant="outline" onClick={handleLogout}>
-                <Icon name="LogOut" size={18} className="mr-2" />
-                Выйти
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <OwnerDashboardHeader
+        owner={owner}
+        onLogout={handleLogout}
+        onTopup={handleTopup}
+        isTopupLoading={isTopupLoading}
+        showCashbackAnimation={showCashbackAnimation}
+        cashbackAmount={cashbackAmount}
+      />
 
       <main className="container mx-auto px-4 py-8">
         {listings.length === 0 ? (
@@ -466,361 +385,30 @@ export default function OwnerDashboard() {
               <TabsTrigger value="auction">Аукцион</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {listings.map((listing) => (
-                  <HotelSubscriptionCard
-                    key={listing.id}
-                    listing={listing}
-                    subscriptionInfo={subscriptionInfo.get(listing.id) || null}
-                    onExtend={handleExtendSubscription}
-                    isLoading={isLoading}
-                  />
-                ))}
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>История операций</CardTitle>
-                  <CardDescription>Последние транзакции</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                    {transactions.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Icon name="Receipt" size={48} className="mx-auto mb-2 opacity-20" />
-                        <p>Операций пока нет</p>
-                      </div>
-                    ) : (
-                      transactions.slice(0, 10).map((tx) => (
-                        <div
-                          key={tx.id}
-                          className="flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Icon
-                              name={
-                                tx.type === 'deposit' ? 'ArrowDownToLine' :
-                                tx.type === 'bonus' ? 'Gift' :
-                                'ArrowUpFromLine'
-                              }
-                              size={16}
-                              className={
-                                tx.type === 'deposit' ? 'text-green-600' :
-                                tx.type === 'bonus' ? 'text-purple-600' :
-                                'text-red-600'
-                              }
-                            />
-                            <div>
-                              <div className="text-sm font-medium">{tx.description}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {new Date(tx.created_at).toLocaleDateString('ru-RU')}
-                              </div>
-                            </div>
-                          </div>
-                          <div className={`text-sm font-bold ${
-                            tx.type === 'deposit' || tx.type === 'bonus' ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {tx.type === 'deposit' || tx.type === 'bonus' ? '+' : ''}{tx.amount} ₽
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="overview">
+              <OwnerOverviewTab
+                listings={listings}
+                subscriptionInfo={subscriptionInfo}
+                transactions={transactions}
+                isLoading={isLoading}
+                onExtendSubscription={handleExtendSubscription}
+              />
             </TabsContent>
 
-            <TabsContent value="auction" className="space-y-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <Label>Выберите отель для аукциона:</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-                    {listings.map((listing) => (
-                      <Button
-                        key={listing.id}
-                        variant={selectedListing?.id === listing.id ? 'default' : 'outline'}
-                        onClick={() => {
-                          setSelectedListing(listing);
-                          loadAuctionInfo(listing.city);
-                          loadStats(listing.id);
-                        }}
-                        className="justify-start h-auto py-3"
-                      >
-                        <div className="text-left">
-                          <div className="font-semibold">{listing.title}</div>
-                          <div className="text-xs opacity-70">{listing.city}</div>
-                        </div>
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {selectedListing ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>История операций</CardTitle>
-                  <CardDescription>Последние 50 транзакций</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {transactions.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Icon name="Receipt" size={48} className="mx-auto mb-2 opacity-20" />
-                        <p>Операций пока нет</p>
-                      </div>
-                    ) : (
-                      transactions.map((tx) => (
-                        <div
-                          key={tx.id}
-                          className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                              tx.type === 'deposit' ? 'bg-green-100' :
-                              tx.type === 'bonus' ? 'bg-purple-100' :
-                              'bg-red-100'
-                            }`}>
-                              <Icon
-                                name={
-                                  tx.type === 'deposit' ? 'ArrowDownToLine' :
-                                  tx.type === 'bonus' ? 'Gift' :
-                                  'ArrowUpFromLine'
-                                }
-                                size={18}
-                                className={
-                                  tx.type === 'deposit' ? 'text-green-600' :
-                                  tx.type === 'bonus' ? 'text-purple-600' :
-                                  'text-red-600'
-                                }
-                              />
-                            </div>
-                            <div>
-                              <div className="font-medium">{tx.description}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {new Date(tx.created_at).toLocaleString('ru-RU', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className={`text-lg font-bold ${
-                              tx.type === 'deposit' || tx.type === 'bonus' ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {tx.type === 'deposit' || tx.type === 'bonus' ? '+' : '-'}{Math.abs(tx.amount)} ₽
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              Баланс: {tx.balance_after} ₽
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Мои объекты</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {listings.map((listing) => (
-                    <div
-                      key={listing.id}
-                      onClick={() => handleListingSelect(listing)}
-                      className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                        selectedListing?.id === listing.id
-                          ? 'border-purple-600 bg-purple-50'
-                          : 'border-gray-200 hover:border-purple-300'
-                      }`}
-                    >
-                      <div className="font-semibold">{listing.title}</div>
-                      <div className="text-sm text-muted-foreground">{listing.city}</div>
-                      <Badge variant="outline" className="mt-2">
-                        Позиция #{listing.auction || '—'}
-                      </Badge>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Бронирование позиций - {selectedListing.city}</CardTitle>
-                      <CardDescription>
-                        Забронируйте позицию вашего отеля. Обновление в 00:00 МСК
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {auctionInfo && (
-                        <>
-                          <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-3">
-                            <div className="grid grid-cols-2 gap-3 text-center">
-                              <div>
-                                <div className="text-xs text-purple-700">Ваша позиция</div>
-                                <div className="text-2xl font-bold text-purple-900">
-                                  #{selectedListing.auction || '—'}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-purple-700">До обновления</div>
-                                <div className="text-lg font-bold text-purple-900">{timeUntilReset}</div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="border-t pt-3">
-                            <h3 className="font-semibold mb-2 text-sm">Позиции в аукционе:</h3>
-                            <div className="space-y-1.5 max-h-[450px] overflow-y-auto pr-1">
-                              {[...auctionInfo.positions].reverse().map((posInfo) => {
-                                const isMyPosition = posInfo.booking_info?.listing_id === selectedListing.id;
-                                const isBooked = posInfo.is_booked && !isMyPosition;
-                                const priceToShow = posInfo.is_booked ? posInfo.min_overbid : posInfo.base_price;
-                                
-                                return (
-                                  <div
-                                    key={posInfo.position}
-                                    className={`flex items-center justify-between p-2 rounded-lg border transition-all ${
-                                      isMyPosition ? 'bg-purple-50 border-purple-300 shadow-sm' :
-                                      isBooked ? 'bg-orange-50/50 border-orange-200' :
-                                      'bg-white border-gray-200 hover:border-purple-200 hover:shadow-sm'
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${
-                                        posInfo.position === 1 ? 'bg-yellow-400 text-yellow-900' :
-                                        posInfo.position === 2 ? 'bg-gray-300 text-gray-700' :
-                                        posInfo.position === 3 ? 'bg-orange-400 text-orange-900' :
-                                        isMyPosition ? 'bg-purple-600 text-white' :
-                                        'bg-gray-200 text-gray-700'
-                                      }`}>
-                                        {posInfo.position}
-                                      </div>
-                                      <div>
-                                        <div className="font-semibold text-sm">
-                                          {priceToShow} ₽
-                                          {isBooked && (
-                                            <span className="text-xs text-orange-600 ml-1 font-normal">
-                                              +5₽
-                                            </span>
-                                          )}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground">
-                                          {isMyPosition ? '✓ Вы здесь' :
-                                           isBooked ? 'Занято' :
-                                           'Свободно'}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    {isMyPosition ? (
-                                      <Badge className="bg-purple-600 text-xs px-2 py-0">Ваша</Badge>
-                                    ) : (
-                                      <Button
-                                        size="sm"
-                                        onClick={() => handleBookPosition(posInfo.position, priceToShow!)}
-                                        disabled={isLoading}
-                                        className={`h-7 text-xs px-2 ${isBooked 
-                                          ? "bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
-                                          : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                                        }`}
-                                      >
-                                        {isLoading && selectedPosition === posInfo.position ? (
-                                          <Icon name="Loader2" size={14} className="animate-spin" />
-                                        ) : isBooked ? (
-                                          <>Перебить</>
-                                        ) : (
-                                          <>Забронировать</>
-                                        )}
-                                      </Button>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-
-                          <div className="text-xs text-muted-foreground bg-gradient-to-r from-blue-50 to-purple-50 p-2.5 rounded-lg space-y-1">
-                            <div>
-                              <Icon name="Clock" size={13} className="inline mr-1" />
-                              Аукцион обновляется в 00:00 МСК
-                            </div>
-                            <div>
-                              <Icon name="TrendingUp" size={13} className="inline mr-1" />
-                              При перебивании все ниже сдвигаются на +1 позицию
-                            </div>
-                            <div>
-                              <Icon name="Info" size={13} className="inline mr-1" />
-                              Без аукциона отель размещается в конце бесплатно
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Статистика за 7 дней</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {stats ? (
-                        <>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                            <div className="text-center p-4 bg-purple-50 rounded-lg">
-                              <Icon name="Eye" size={24} className="mx-auto mb-2 text-purple-600" />
-                              <div className="text-2xl font-bold text-purple-600">{stats.summary.total_views}</div>
-                              <div className="text-sm text-muted-foreground">Просмотров</div>
-                            </div>
-                            <div className="text-center p-4 bg-pink-50 rounded-lg">
-                              <Icon name="MousePointerClick" size={24} className="mx-auto mb-2 text-pink-600" />
-                              <div className="text-2xl font-bold text-pink-600">{stats.summary.total_clicks}</div>
-                              <div className="text-sm text-muted-foreground">Кликов</div>
-                            </div>
-                            <div className="text-center p-4 bg-orange-50 rounded-lg">
-                              <Icon name="Phone" size={24} className="mx-auto mb-2 text-orange-600" />
-                              <div className="text-2xl font-bold text-orange-600">{stats.summary.phone_clicks}</div>
-                              <div className="text-sm text-muted-foreground">Звонков</div>
-                            </div>
-                            <div className="text-center p-4 bg-blue-50 rounded-lg">
-                              <Icon name="MessageCircle" size={24} className="mx-auto mb-2 text-blue-600" />
-                              <div className="text-2xl font-bold text-blue-600">{stats.summary.telegram_clicks}</div>
-                              <div className="text-sm text-muted-foreground">Telegram</div>
-                            </div>
-                          </div>
-                          <div className="text-center p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
-                            <div className="text-sm text-purple-700 mb-1">Конверсия (CTR)</div>
-                            <div className="text-3xl font-bold text-purple-900">{stats.summary.ctr}%</div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-center py-8 text-muted-foreground">
-                          Загрузка статистики...
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">Выберите отель в разделе "Мои объекты"</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+            <TabsContent value="auction">
+              <OwnerAuctionTab
+                listings={listings}
+                selectedListing={selectedListing}
+                auctionInfo={auctionInfo}
+                stats={stats}
+                transactions={transactions}
+                timeUntilReset={timeUntilReset}
+                isLoading={isLoading}
+                selectedPosition={selectedPosition}
+                onSelectListing={handleListingSelect}
+                onBookPosition={handleBookPosition}
+              />
+            </TabsContent>
           </Tabs>
         )}
       </main>
