@@ -83,7 +83,10 @@ export default function OwnerDashboard() {
   const ownerId = localStorage.getItem('ownerId');
 
   useEffect(() => {
+    console.log('Dashboard loaded. Token:', token ? 'exists' : 'missing', 'OwnerId:', ownerId);
+    
     if (!token || !ownerId) {
+      console.log('Missing credentials, redirecting to login');
       navigate('/owner/login');
       return;
     }
