@@ -13,6 +13,44 @@ import AdminListingForm from '@/components/AdminListingForm';
 import AdminOwnersTab from '@/components/AdminOwnersTab';
 import AdminEmployeesTab from '@/components/AdminEmployeesTab';
 
+function LiveCountdown({ expiresAt }: { expiresAt: string | null }) {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    if (!expiresAt) return;
+
+    const updateTimer = () => {
+      const now = new Date();
+      const expires = new Date(expiresAt);
+      const diff = expires.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setTimeLeft('Истекла');
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setTimeLeft(`${days}д ${hours}ч ${minutes}м`);
+      } else if (hours > 0) {
+        setTimeLeft(`${hours}ч ${minutes}м ${seconds}с`);
+      } else {
+        setTimeLeft(`${minutes}м ${seconds}с`);
+      }
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, [expiresAt]);
+
+  return timeLeft ? <div className="text-xs mt-1">{timeLeft}</div> : null;
+}
+
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<'listings' | 'owners' | 'employees'>('listings');
   const [listings, setListings] = useState<any[]>([]);
@@ -410,9 +448,12 @@ export default function AdminPanel() {
                           </div>
                           <div className="flex items-center justify-between pt-2 border-t">
                             <span className="text-sm text-muted-foreground">Подписка:</span>
-                            <Badge variant={formatSubscriptionStatus(listing).variant}>
-                              {formatSubscriptionStatus(listing).text}
-                            </Badge>
+                            <div className="text-right">
+                              <Badge variant={formatSubscriptionStatus(listing).variant}>
+                                {formatSubscriptionStatus(listing).text}
+                              </Badge>
+                              <LiveCountdown expiresAt={listing.subscription_expires_at} />
+                            </div>
                           </div>
                           <div className="flex gap-2 mt-4">
                             <Button
