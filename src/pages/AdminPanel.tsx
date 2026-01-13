@@ -295,7 +295,7 @@ export default function AdminPanel() {
           </div>
         )}
         </>
-        )}
+        ) : null}
       </main>
     </div>
   );
