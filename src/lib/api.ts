@@ -138,14 +138,14 @@ export const api = {
     return response.json();
   },
 
-  placeBid: async (token: string, owner_id: number, listing_id: number, city: string, bid_amount: number, target_position: number = 1) => {
+  placeBid: async (token: string, owner_id: number, listing_id: number, city: string, target_position: number) => {
     const response = await fetch(API_URLS.auction, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ action: 'place_bid', owner_id, listing_id, city, bid_amount, target_position }),
+      body: JSON.stringify({ action: 'place_bid', owner_id, listing_id, city, target_position }),
     });
     return response.json();
   },

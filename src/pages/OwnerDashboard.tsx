@@ -26,15 +26,19 @@ interface Listing {
 }
 
 interface AuctionInfo {
-  listings: Array<{
-    id: number;
-    title: string;
-    current_position: number;
-    bid_amount: number | null;
-    target_position: number | null;
-    owner_name: string | null;
+  positions: Array<{
+    position: number;
+    price: number;
+    is_booked: boolean;
+    booking_info?: {
+      listing_id: number;
+      listing_title: string;
+      owner_id: number;
+      paid_amount: number;
+    };
   }>;
-  min_bid_for_top: number;
+  total_positions: number;
+  city: string;
 }
 
 interface Stats {
@@ -72,10 +76,11 @@ export default function OwnerDashboard() {
   const [auctionInfo, setAuctionInfo] = useState<AuctionInfo | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [bidAmount, setBidAmount] = useState('');
+  const [selectedPosition, setSelectedPosition] = useState<number | null>(null);
   const [topupAmount, setTopupAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTopupLoading, setIsTopupLoading] = useState(false);
+  const [timeUntilReset, setTimeUntilReset] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -98,6 +103,26 @@ export default function OwnerDashboard() {
 
     loadOwnerListings();
     loadTransactions();
+
+    const updateTimer = () => {
+      const now = new Date();
+      const moscowTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Moscow' }));
+      const tomorrow = new Date(moscowTime);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      const diff = tomorrow.getTime() - moscowTime.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setTimeUntilReset(`${hours}ч ${minutes}м ${seconds}с`);
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(timer);
   }, [token, ownerId, navigate]);
 
   const loadOwnerListings = async () => {
@@ -150,38 +175,22 @@ export default function OwnerDashboard() {
     loadStats(listing.id);
   };
 
-  const handlePlaceBid = async () => {
-    if (!selectedListing || !bidAmount) {
-      toast({
-        title: 'Ошибка',
-        description: 'Укажите сумму ставки',
-        variant: 'destructive',
-      });
-      return;
-    }
+  const handleBookPosition = async (position: number, price: number) => {
+    if (!selectedListing) return;
 
-    const amount = parseInt(bidAmount);
     const totalBalance = (owner?.balance || 0) + (owner?.bonus_balance || 0);
 
-    if (amount > totalBalance) {
+    if (price > totalBalance) {
       toast({
         title: 'Недостаточно средств',
-        description: `У вас ${totalBalance} ₽ (${owner?.balance} ₽ + ${owner?.bonus_balance} бонусных)`,
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (auctionInfo && amount < auctionInfo.min_bid_for_top) {
-      toast({
-        title: 'Ставка слишком мала',
-        description: `Минимальная ставка: ${auctionInfo.min_bid_for_top} ₽`,
+        description: `Нужно ${price} ₽, у вас ${totalBalance} ₽`,
         variant: 'destructive',
       });
       return;
     }
 
     setIsLoading(true);
+    setSelectedPosition(position);
 
     try {
       const response = await api.placeBid(
@@ -189,8 +198,7 @@ export default function OwnerDashboard() {
         parseInt(ownerId!),
         selectedListing.id,
         selectedListing.city,
-        amount,
-        1
+        position
       );
 
       if (response.error) {
@@ -202,26 +210,26 @@ export default function OwnerDashboard() {
         description: response.message,
       });
 
-      const newBalance = (owner?.balance || 0) - amount;
-      const newBonusBalance = Math.max(0, (owner?.bonus_balance || 0) - amount);
-      
-      setOwner(prev => prev ? {
-        ...prev,
-        balance: Math.max(0, newBalance),
-        bonus_balance: newBonusBalance
-      } : null);
+      const updatedOwnerData = {
+        ...owner!,
+        balance: Math.max(0, owner!.balance - (price - Math.min(owner!.bonus_balance, price))),
+        bonus_balance: Math.max(0, owner!.bonus_balance - Math.min(owner!.bonus_balance, price))
+      };
+      setOwner(updatedOwnerData);
+      localStorage.setItem('ownerData', JSON.stringify(updatedOwnerData));
 
-      setBidAmount('');
       loadOwnerListings();
       loadAuctionInfo(selectedListing.city);
+      loadTransactions();
     } catch (error: any) {
       toast({
         title: 'Ошибка',
-        description: error.message || 'Не удалось разместить ставку',
+        description: error.message || 'Не удалось забронировать позицию',
         variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
+      setSelectedPosition(null);
     }
   };
 
@@ -445,116 +453,107 @@ export default function OwnerDashboard() {
                 <>
                   <Card>
                     <CardHeader>
-                      <CardTitle>Аукцион позиций - {selectedListing.city}</CardTitle>
+                      <CardTitle>Бронирование позиций - {selectedListing.city}</CardTitle>
                       <CardDescription>
-                        Поднимите свой объект выше в результатах поиска
+                        Забронируйте позицию вашего отеля. Обновление в 00:00 МСК
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {auctionInfo && (
-                        <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-4">
-                          <div className="text-lg font-bold text-purple-900 mb-2">
-                            Минимальная ставка для 1 места: {auctionInfo.min_bid_for_top} ₽
-                          </div>
-                          <div className="text-sm text-purple-700">
-                            Каждая новая ставка должна быть на 5₽ выше текущей
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="space-y-2">
-                        <Label htmlFor="bidAmount">Ваша ставка (₽)</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="bidAmount"
-                            type="number"
-                            placeholder={auctionInfo ? `Минимум ${auctionInfo.min_bid_for_top}` : '0'}
-                            value={bidAmount}
-                            onChange={(e) => setBidAmount(e.target.value)}
-                          />
-                          <Button
-                            onClick={handlePlaceBid}
-                            disabled={isLoading}
-                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                          >
-                            {isLoading ? (
-                              <Icon name="Loader2" size={18} className="animate-spin" />
-                            ) : (
-                              <>
-                                <Icon name="TrendingUp" size={18} className="mr-2" />
-                                Поднять
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Бонусы будут использованы в первую очередь
-                        </div>
-                      </div>
-
-                      <div className="border-t pt-4 space-y-4">
-                        <div>
-                          <h3 className="font-semibold mb-3">Ваша позиция:</h3>
-                          {auctionInfo?.listings.find(item => item.id === selectedListing.id) && (
-                            <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-lg border-2 border-purple-300">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-12 h-12 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xl">
-                                    {auctionInfo.listings.find(item => item.id === selectedListing.id)?.current_position}
-                                  </div>
-                                  <div>
-                                    <div className="font-bold text-lg">{selectedListing.title}</div>
-                                    {auctionInfo.listings.find(item => item.id === selectedListing.id)?.bid_amount && (
-                                      <div className="text-sm text-purple-700">
-                                        Активная ставка: {auctionInfo.listings.find(item => item.id === selectedListing.id)?.bid_amount} ₽
-                                      </div>
-                                    )}
-                                  </div>
+                        <>
+                          <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-4">
+                            <div className="grid grid-cols-3 gap-4 text-center">
+                              <div>
+                                <div className="text-sm text-purple-700">Всего позиций</div>
+                                <div className="text-2xl font-bold text-purple-900">{auctionInfo.total_positions}</div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-purple-700">Ваша текущая</div>
+                                <div className="text-2xl font-bold text-purple-900">
+                                  #{auctionInfo.positions.find(p => p.booking_info?.listing_id === selectedListing.id)?.position || selectedListing.auction}
                                 </div>
-                                <Badge variant="secondary" className="bg-purple-200 text-purple-800">
-                                  Ваш отель
-                                </Badge>
+                              </div>
+                              <div>
+                                <div className="text-sm text-purple-700">До обновления</div>
+                                <div className="text-lg font-bold text-purple-900">{timeUntilReset}</div>
                               </div>
                             </div>
-                          )}
-                        </div>
+                          </div>
 
-                        <div>
-                          <h3 className="font-semibold mb-3">Топ-10 отелей в городе:</h3>
-                          <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                            {auctionInfo?.listings.slice(0, 10).map((item) => (
-                              <div
-                                key={item.id}
-                                className={`flex items-center justify-between p-3 rounded ${
-                                  item.id === selectedListing.id ? 'bg-purple-50 border-2 border-purple-300' : 'bg-gray-50'
-                                }`}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                                    item.current_position === 1 ? 'bg-yellow-400 text-yellow-900' :
-                                    item.current_position === 2 ? 'bg-gray-300 text-gray-700' :
-                                    item.current_position === 3 ? 'bg-orange-400 text-orange-900' :
-                                    'bg-gray-200 text-gray-600'
-                                  }`}>
-                                    {item.current_position}
-                                  </div>
-                                  <div>
-                                    <div className="font-medium">{item.title}</div>
-                                    {item.bid_amount && (
-                                      <div className="text-sm text-muted-foreground">
-                                        Ставка: {item.bid_amount} ₽
+                          <div className="border-t pt-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h3 className="font-semibold">Доступные позиции:</h3>
+                              <div className="text-xs text-muted-foreground">
+                                Прокрутите, чтобы увидеть все
+                              </div>
+                            </div>
+                            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+                              {[...auctionInfo.positions].reverse().map((posInfo) => {
+                                const isMyPosition = posInfo.booking_info?.listing_id === selectedListing.id;
+                                const isBooked = posInfo.is_booked && !isMyPosition;
+                                
+                                return (
+                                  <div
+                                    key={posInfo.position}
+                                    className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
+                                      isMyPosition ? 'bg-purple-50 border-purple-400' :
+                                      isBooked ? 'bg-gray-100 border-gray-300 opacity-60' :
+                                      'bg-white border-gray-200 hover:border-purple-300 hover:shadow-md'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                                        posInfo.position === 1 ? 'bg-yellow-400 text-yellow-900' :
+                                        posInfo.position === 2 ? 'bg-gray-300 text-gray-700' :
+                                        posInfo.position === 3 ? 'bg-orange-400 text-orange-900' :
+                                        isMyPosition ? 'bg-purple-600 text-white' :
+                                        'bg-gray-200 text-gray-700'
+                                      }`}>
+                                        {posInfo.position}
                                       </div>
+                                      <div>
+                                        <div className="font-semibold text-lg">{posInfo.price} ₽</div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {isMyPosition ? '✓ Ваша позиция' :
+                                           isBooked ? '✗ Занято' :
+                                           '○ Свободно'}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    {isMyPosition ? (
+                                      <Badge className="bg-purple-600">Активна</Badge>
+                                    ) : isBooked ? (
+                                      <Badge variant="secondary">Занято</Badge>
+                                    ) : (
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handleBookPosition(posInfo.position, posInfo.price)}
+                                        disabled={isLoading}
+                                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                                      >
+                                        {isLoading && selectedPosition === posInfo.position ? (
+                                          <Icon name="Loader2" size={16} className="animate-spin" />
+                                        ) : (
+                                          <>
+                                            <Icon name="Check" size={16} className="mr-1" />
+                                            Забронировать
+                                          </>
+                                        )}
+                                      </Button>
                                     )}
                                   </div>
-                                </div>
-                                {item.id === selectedListing.id && (
-                                  <Badge className="bg-purple-600">Вы</Badge>
-                                )}
-                              </div>
-                            ))}
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      </div>
+
+                          <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg">
+                            <Icon name="Info" size={14} className="inline mr-1" />
+                            Бронирование действует до 00:00 по Москве. Бонусы списываются первыми.
+                          </div>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
 
