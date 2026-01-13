@@ -3,6 +3,7 @@ const API_URLS = {
   adminListings: 'https://functions.poehali.dev/5dea57de-4652-4870-b39f-6b34e594bc21',
   adminUpload: 'https://functions.poehali.dev/22c1da70-b8a6-4b5e-81b8-330b559a8943',
   adminOwners: 'https://functions.poehali.dev/25475092-b74f-493d-a43c-082847302085',
+  ownerListings: 'https://functions.poehali.dev/f431775b-031f-4417-b3eb-9e0475119162',
   publicListings: 'https://functions.poehali.dev/38a2f104-026e-40ea-80dc-0c07c014f868',
   ownerAuth: 'https://functions.poehali.dev/381f57fd-5365-49e9-bb38-088d8db34102',
   ownerPasswordRecovery: 'https://functions.poehali.dev/e8d34dd8-8e0d-4d25-b36b-499898e019c7',
@@ -232,6 +233,52 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'verify', token }),
     });
+    return response.json();
+  },
+
+  // Архивация владельцев
+  archiveOwner: async (token: string, id: number) => {
+    const response = await fetch(API_URLS.adminOwners, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ id }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+
+  // Получение отелей для привязки
+  getAvailableListings: async (token: string) => {
+    const response = await fetch(API_URLS.ownerListings, {
+      headers: { 'X-Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+
+  // Привязка отеля к владельцу
+  assignListingToOwner: async (token: string, listing_id: number, owner_id: number | null) => {
+    const response = await fetch(API_URLS.ownerListings, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ listing_id, owner_id }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
     return response.json();
   },
 };

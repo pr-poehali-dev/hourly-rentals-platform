@@ -26,7 +26,7 @@ def handler(event: dict, context) -> dict:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Authorization'
             },
             'body': '',
@@ -53,12 +53,12 @@ def handler(event: dict, context) -> dict:
             cur.execute("""
                 SELECT 
                     o.id, o.email, o.login, o.full_name, o.phone, 
-                    o.balance, o.bonus_balance, o.created_at, o.last_login,
+                    o.balance, o.bonus_balance, o.created_at, o.last_login, o.is_archived,
                     COUNT(DISTINCT l.id) as hotels_count
                 FROM owners o
                 LEFT JOIN listings l ON l.owner_id = o.id
                 GROUP BY o.id
-                ORDER BY o.id DESC
+                ORDER BY o.is_archived, o.id DESC
             """)
             owners = cur.fetchall()
             
@@ -181,6 +181,35 @@ def handler(event: dict, context) -> dict:
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps(dict(owner), default=str),
+                'isBase64Encoded': False
+            }
+        
+        elif method == 'DELETE':
+            body = json.loads(event.get('body', '{}'))
+            owner_id = body.get('id')
+            
+            if not owner_id:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'ID владельца не указан'}),
+                    'isBase64Encoded': False
+                }
+            
+            cur.execute("""
+                UPDATE owners 
+                SET is_archived = NOT is_archived
+                WHERE id = %s
+                RETURNING id, is_archived
+            """, (owner_id,))
+            
+            result = cur.fetchone()
+            conn.commit()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps(dict(result), default=str),
                 'isBase64Encoded': False
             }
         

@@ -19,13 +19,26 @@ interface Owner {
   hotels_count: number;
   created_at: string;
   last_login?: string;
+  is_archived: boolean;
+}
+
+interface Listing {
+  id: number;
+  title: string;
+  city: string;
+  district: string;
+  owner_id: number | null;
+  owner_name?: string;
 }
 
 export default function AdminOwnersTab({ token }: { token: string }) {
   const [owners, setOwners] = useState<Owner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedOwner, setSelectedOwner] = useState<Owner | null>(null);
+  const [availableListings, setAvailableListings] = useState<Listing[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -75,6 +88,81 @@ export default function AdminOwnersTab({ token }: { token: string }) {
     setShowForm(true);
   };
 
+  const handleArchive = async (owner: Owner) => {
+    try {
+      await api.archiveOwner(token, owner.id);
+      toast({
+        title: 'Успешно',
+        description: owner.is_archived ? 'Владелец восстановлен из архива' : 'Владелец перемещён в архив',
+      });
+      loadOwners();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось изменить статус',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAssignListings = async (owner: Owner) => {
+    setSelectedOwner(owner);
+    setShowAssignModal(true);
+    setSearchQuery('');
+    try {
+      const data = await api.getAvailableListings(token);
+      setAvailableListings(data);
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось загрузить список отелей',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAssignListing = async (listing: Listing) => {
+    if (!selectedOwner) return;
+    
+    try {
+      await api.assignListingToOwner(token, listing.id, selectedOwner.id);
+      toast({
+        title: 'Успешно',
+        description: `Отель "${listing.title}" привязан к владельцу ${selectedOwner.full_name}`,
+      });
+      
+      const data = await api.getAvailableListings(token);
+      setAvailableListings(data);
+      loadOwners();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось привязать отель',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUnassignListing = async (listing: Listing) => {
+    try {
+      await api.assignListingToOwner(token, listing.id, null);
+      toast({
+        title: 'Успешно',
+        description: `Отель "${listing.title}" отвязан от владельца`,
+      });
+      
+      const data = await api.getAvailableListings(token);
+      setAvailableListings(data);
+      loadOwners();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось отвязать отель',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -95,6 +183,92 @@ export default function AdminOwnersTab({ token }: { token: string }) {
       });
     }
   };
+
+  const filteredListings = availableListings.filter((listing) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      listing.title.toLowerCase().includes(query) ||
+      listing.city.toLowerCase().includes(query) ||
+      listing.district.toLowerCase().includes(query)
+    );
+  });
+
+  if (showAssignModal && selectedOwner) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-4">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Привязка отелей к {selectedOwner.full_name}</CardTitle>
+              <Button variant="outline" onClick={() => setShowAssignModal(false)}>
+                <Icon name="X" size={18} className="mr-2" />
+                Закрыть
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="search">Поиск по названию или городу</Label>
+              <Input
+                id="search"
+                placeholder="Введите название отеля или город..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-3 max-h-[500px] overflow-y-auto">
+              {filteredListings.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">Отели не найдены</p>
+              ) : (
+                filteredListings.map((listing) => (
+                  <Card key={listing.id} className={listing.owner_id === selectedOwner.id ? 'border-purple-500' : ''}>
+                    <CardContent className="pt-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold">{listing.title}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {listing.city}, {listing.district}
+                          </p>
+                          {listing.owner_name && listing.owner_id !== selectedOwner.id && (
+                            <p className="text-xs text-orange-600 mt-1">
+                              Привязан к: {listing.owner_name}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          {listing.owner_id === selectedOwner.id ? (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleUnassignListing(listing)}
+                            >
+                              <Icon name="Unlink" size={16} className="mr-2" />
+                              Отвязать
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleAssignListing(listing)}
+                              disabled={listing.owner_id !== null}
+                            >
+                              <Icon name="Link" size={16} className="mr-2" />
+                              Привязать
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (showForm) {
     return (
@@ -206,12 +380,17 @@ export default function AdminOwnersTab({ token }: { token: string }) {
       ) : (
         <div className="grid gap-4">
           {owners.map((owner) => (
-            <Card key={owner.id}>
+            <Card key={owner.id} className={owner.is_archived ? 'opacity-60' : ''}>
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between">
                   <div className="space-y-3 flex-1">
                     <div>
-                      <h3 className="text-xl font-bold">{owner.full_name}</h3>
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-xl font-bold">{owner.full_name}</h3>
+                        {owner.is_archived && (
+                          <Badge variant="secondary">Архив</Badge>
+                        )}
+                      </div>
                       <p className="text-muted-foreground">{owner.email}</p>
                       {owner.login && (
                         <p className="text-sm text-muted-foreground">Логин: {owner.login}</p>
@@ -244,17 +423,35 @@ export default function AdminOwnersTab({ token }: { token: string }) {
                     <div className="text-xs text-muted-foreground">
                       Регистрация: {new Date(owner.created_at).toLocaleDateString('ru-RU')}
                       {owner.last_login && (
-                        <span className="ml-4">
-                          Последний вход: {new Date(owner.last_login).toLocaleDateString('ru-RU')}
-                        </span>
+                        <> • Последний вход: {new Date(owner.last_login).toLocaleDateString('ru-RU')}</>
                       )}
                     </div>
                   </div>
 
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(owner)}>
-                    <Icon name="Edit" size={16} className="mr-2" />
-                    Редактировать
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAssignListings(owner)}
+                    >
+                      <Icon name="Link" size={16} className="mr-2" />
+                      Привязать отели
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(owner)}
+                    >
+                      <Icon name="Edit" size={16} />
+                    </Button>
+                    <Button
+                      variant={owner.is_archived ? 'default' : 'destructive'}
+                      size="sm"
+                      onClick={() => handleArchive(owner)}
+                    >
+                      <Icon name={owner.is_archived ? 'ArchiveRestore' : 'Archive'} size={16} />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
