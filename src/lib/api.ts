@@ -333,4 +333,36 @@ export const api = {
     }
     return response.json();
   },
+
+  adminAddBonus: async (token: string, ownerId: number, amount: number) => {
+    const response = await fetch(API_URLS.adminOwners, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action: 'add_bonus', owner_id: ownerId, amount }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+
+  updateListingPosition: async (token: string, listingId: number, newPosition: number) => {
+    const response = await fetch(API_URLS.adminListings, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action: 'update_position', listing_id: listingId, position: newPosition }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
 };

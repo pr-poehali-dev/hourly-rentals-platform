@@ -194,6 +194,80 @@ def handler(event: dict, context) -> dict:
                 'isBase64Encoded': False
             }
         
+        elif method == 'PATCH':
+            body = json.loads(event.get('body', '{}'))
+            action = body.get('action')
+            owner_id = body.get('owner_id')
+            
+            if action == 'add_bonus':
+                amount = body.get('amount')
+                
+                if not owner_id or not amount:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Укажите owner_id и amount'}),
+                        'isBase64Encoded': False
+                    }
+                
+                if amount <= 0:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Сумма должна быть положительной'}),
+                        'isBase64Encoded': False
+                    }
+                
+                # Начисляем бонусы
+                cur.execute("""
+                    UPDATE owners 
+                    SET bonus_balance = bonus_balance + %s
+                    WHERE id = %s
+                    RETURNING id, full_name, bonus_balance, balance
+                """, (amount, owner_id))
+                
+                owner = cur.fetchone()
+                
+                if not owner:
+                    return {
+                        'statusCode': 404,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Владелец не найден'}),
+                        'isBase64Encoded': False
+                    }
+                
+                # Записываем транзакцию
+                cur.execute("""
+                    INSERT INTO transactions (owner_id, amount, type, description, balance_after)
+                    VALUES (%s, %s, 'bonus', %s, %s)
+                """, (
+                    owner_id, 
+                    amount, 
+                    f'Начисление бонусов администратором (ID: {admin["id"]})',
+                    owner['balance'] + owner['bonus_balance']
+                ))
+                
+                conn.commit()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'message': f'Начислено {amount} бонусных рублей',
+                        'owner': dict(owner)
+                    }, default=str),
+                    'isBase64Encoded': False
+                }
+            
+            else:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Unknown action'}),
+                    'isBase64Encoded': False
+                }
+        
         elif method == 'DELETE':
             body = json.loads(event.get('body', '{}'))
             owner_id = body.get('id')

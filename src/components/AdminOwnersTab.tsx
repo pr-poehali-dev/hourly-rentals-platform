@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
@@ -38,7 +39,9 @@ export default function AdminOwnersTab({ token }: { token: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showBonusDialog, setShowBonusDialog] = useState(false);
   const [selectedOwner, setSelectedOwner] = useState<Owner | null>(null);
+  const [bonusAmount, setBonusAmount] = useState('');
   const [availableListings, setAvailableListings] = useState<Listing[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCity, setSelectedCity] = useState<string>('all');
@@ -104,6 +107,37 @@ export default function AdminOwnersTab({ token }: { token: string }) {
       toast({
         title: 'Ошибка',
         description: error.message || 'Не удалось изменить статус',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAddBonus = async () => {
+    if (!selectedOwner || !bonusAmount) return;
+    
+    const amount = parseFloat(bonusAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: 'Ошибка',
+        description: 'Введите корректную сумму',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await api.adminAddBonus(token, selectedOwner.id, amount);
+      toast({
+        title: 'Успешно',
+        description: `Начислено ${amount} бонусных рублей`,
+      });
+      setShowBonusDialog(false);
+      setBonusAmount('');
+      loadOwners();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось начислить бонусы',
         variant: 'destructive',
       });
     }
@@ -561,6 +595,18 @@ export default function AdminOwnersTab({ token }: { token: string }) {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => {
+                        setSelectedOwner(owner);
+                        setShowBonusDialog(true);
+                      }}
+                      className="bg-green-50 hover:bg-green-100 border-green-300"
+                    >
+                      <Icon name="Gift" size={16} className="mr-1" />
+                      Бонусы
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleEdit(owner)}
                     >
                       <Icon name="Edit" size={16} />
@@ -579,6 +625,60 @@ export default function AdminOwnersTab({ token }: { token: string }) {
           ))}
         </div>
       )}
+
+      <Dialog open={showBonusDialog} onOpenChange={setShowBonusDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Начислить бонусы</DialogTitle>
+            <DialogDescription>
+              {selectedOwner?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {selectedOwner && (
+              <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="text-sm text-purple-900">
+                  Текущий баланс: <strong>{selectedOwner.balance} ₽</strong>
+                </div>
+                <div className="text-sm text-purple-900">
+                  Бонусный баланс: <strong>{selectedOwner.bonus_balance} ₽</strong>
+                </div>
+                <div className="text-xs text-purple-700 mt-1">
+                  1 бонусный рубль = 1 обычному рублю
+                </div>
+              </div>
+            )}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Сумма бонусов (₽)</label>
+              <Input
+                type="number"
+                min="1"
+                step="1"
+                value={bonusAmount}
+                onChange={(e) => setBonusAmount(e.target.value)}
+                placeholder="100"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setBonusAmount('100')}>100₽</Button>
+              <Button size="sm" variant="outline" onClick={() => setBonusAmount('500')}>500₽</Button>
+              <Button size="sm" variant="outline" onClick={() => setBonusAmount('1000')}>1000₽</Button>
+              <Button size="sm" variant="outline" onClick={() => setBonusAmount('5000')}>5000₽</Button>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => {
+              setShowBonusDialog(false);
+              setBonusAmount('');
+            }} className="flex-1">
+              Отмена
+            </Button>
+            <Button onClick={handleAddBonus} className="flex-1 bg-green-600 hover:bg-green-700">
+              Начислить
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

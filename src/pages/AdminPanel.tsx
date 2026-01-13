@@ -159,6 +159,23 @@ export default function AdminPanel() {
     loadListings();
   };
 
+  const handleChangePosition = async (listingId: number, newPosition: number) => {
+    try {
+      await api.updateListingPosition(token!, listingId, newPosition);
+      toast({
+        title: 'Успешно',
+        description: `Позиция изменена на #${newPosition}`,
+      });
+      loadListings();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось изменить позицию',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleSetSubscription = async () => {
     if (!subscriptionDialog.listing || subscriptionDays < 1) {
       toast({
@@ -440,7 +457,21 @@ export default function AdminPanel() {
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-muted-foreground">Позиция:</span>
-                            <Badge variant="outline">#{listing.auction}</Badge>
+                            <Select 
+                              value={String(listing.auction)} 
+                              onValueChange={(value) => handleChangePosition(listing.id, parseInt(value))}
+                            >
+                              <SelectTrigger className="w-[100px] h-8">
+                                <SelectValue>#{listing.auction}</SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: cityListings.length }, (_, i) => i + 1).map((pos) => (
+                                  <SelectItem key={pos} value={String(pos)}>
+                                    #{pos}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-muted-foreground">Номеров:</span>

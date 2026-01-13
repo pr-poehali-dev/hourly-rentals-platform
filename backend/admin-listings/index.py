@@ -25,7 +25,7 @@ def handler(event: dict, context) -> dict:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Authorization'
             },
             'body': '',
@@ -215,6 +215,99 @@ def handler(event: dict, context) -> dict:
                 'body': json.dumps(updated_listing, default=str),
                 'isBase64Encoded': False
             }
+        
+        # PATCH - изменение позиции объекта
+        elif method == 'PATCH':
+            body = json.loads(event.get('body', '{}'))
+            action = body.get('action')
+            
+            if action == 'update_position':
+                listing_id = body.get('listing_id')
+                new_position = body.get('position')
+                
+                if not listing_id or not new_position:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Требуется listing_id и position'}),
+                        'isBase64Encoded': False
+                    }
+                
+                # Получаем текущую позицию и город
+                cur.execute("SELECT auction, city FROM listings WHERE id = %s", (listing_id,))
+                listing = cur.fetchone()
+                
+                if not listing:
+                    return {
+                        'statusCode': 404,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Объект не найден'}),
+                        'isBase64Encoded': False
+                    }
+                
+                old_position = listing['auction']
+                city = listing['city']
+                
+                # Если позиция не изменилась
+                if old_position == new_position:
+                    return {
+                        'statusCode': 200,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'success': True, 'message': 'Позиция не изменилась'}),
+                        'isBase64Encoded': False
+                    }
+                
+                # Обновляем позиции в городе
+                if old_position < new_position:
+                    # Перемещение вниз: сдвигаем вверх объекты между old и new
+                    cur.execute("""
+                        UPDATE listings 
+                        SET auction = auction - 1
+                        WHERE city = %s 
+                          AND auction > %s 
+                          AND auction <= %s
+                          AND id != %s
+                    """, (city, old_position, new_position, listing_id))
+                else:
+                    # Перемещение вверх: сдвигаем вниз объекты между new и old
+                    cur.execute("""
+                        UPDATE listings 
+                        SET auction = auction + 1
+                        WHERE city = %s 
+                          AND auction >= %s 
+                          AND auction < %s
+                          AND id != %s
+                    """, (city, new_position, old_position, listing_id))
+                
+                # Устанавливаем новую позицию
+                cur.execute("""
+                    UPDATE listings 
+                    SET auction = %s
+                    WHERE id = %s
+                    RETURNING id, title, auction
+                """, (new_position, listing_id))
+                
+                result = cur.fetchone()
+                conn.commit()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'message': f'Позиция изменена с #{old_position} на #{new_position}',
+                        'listing': dict(result)
+                    }, default=str),
+                    'isBase64Encoded': False
+                }
+            
+            else:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Unknown action'}),
+                    'isBase64Encoded': False
+                }
         
         # DELETE - архивация объекта
         elif method == 'DELETE':
