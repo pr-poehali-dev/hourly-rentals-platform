@@ -47,9 +47,10 @@ def handler(event: dict, context) -> dict:
         cur = conn.cursor()
         
         # Проверка администратора (по логину или email)
+        login_escaped = login.replace("'", "''")
+        password_escaped = password.replace("'", "''")
         cur.execute(
-            "SELECT id, email, name, role, permissions, is_active FROM t_p39732784_hourly_rentals_platf.admins WHERE (login = %s OR email = %s) AND password_hash = %s AND is_active = true",
-            (login, login, password)
+            f"SELECT id, email, name, role, permissions, is_active FROM t_p39732784_hourly_rentals_platf.admins WHERE (login = '{login_escaped}' OR email = '{login_escaped}') AND password_hash = '{password_escaped}' AND is_active = true"
         )
         admin = cur.fetchone()
         
@@ -63,8 +64,7 @@ def handler(event: dict, context) -> dict:
         
         # Обновление времени последнего входа
         cur.execute(
-            "UPDATE t_p39732784_hourly_rentals_platf.admins SET last_login = CURRENT_TIMESTAMP WHERE id = %s",
-            (admin[0],)
+            f"UPDATE t_p39732784_hourly_rentals_platf.admins SET last_login = CURRENT_TIMESTAMP WHERE id = {admin[0]}"
         )
         conn.commit()
         
