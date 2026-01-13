@@ -32,16 +32,25 @@ def handler(event: dict, context) -> dict:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         # Получаем только активные объекты (не в архиве)
+        # Сначала платные позиции (с активными ставками), затем бесплатные по порядку создания
         cur.execute("""
+            WITH paid_positions AS (
+                SELECT DISTINCT listing_id
+                FROM auction_bids
+                WHERE status = 'active' 
+                  AND created_at::date = CURRENT_DATE
+            )
             SELECT 
-                id, title, type, city, district, price, rating, reviews, 
-                auction, image_url, logo_url, metro, metro_walk as "metroWalk", 
-                has_parking as "hasParking", features, lat, lng, 
-                min_hours as "minHours", phone, telegram,
-                price_warning_holidays, price_warning_daytime
-            FROM listings 
-            WHERE is_archived = false 
-            ORDER BY auction ASC
+                l.id, l.title, l.type, l.city, l.district, l.price, l.rating, l.reviews, 
+                l.auction, l.image_url, l.logo_url, l.metro, l.metro_walk as "metroWalk", 
+                l.has_parking as "hasParking", l.features, l.lat, l.lng, 
+                l.min_hours as "minHours", l.phone, l.telegram,
+                l.price_warning_holidays, l.price_warning_daytime,
+                CASE WHEN pp.listing_id IS NOT NULL THEN 0 ELSE 1 END as is_free
+            FROM listings l
+            LEFT JOIN paid_positions pp ON pp.listing_id = l.id
+            WHERE l.is_archived = false 
+            ORDER BY is_free ASC, l.auction ASC, l.id ASC
         """)
         
         listings = cur.fetchall()

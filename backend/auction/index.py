@@ -199,36 +199,31 @@ def handler(event: dict, context) -> dict:
                         WHERE id = %s
                     """, (existing_bid['id'],))
                     
-                    lower_position = target_position + 1
-                    if lower_position <= total_positions:
-                        cur.execute("""
-                            SELECT position 
-                            FROM auction_bids
-                            WHERE city = %s 
-                              AND position >= %s
-                              AND status = 'active'
-                              AND created_at::date = CURRENT_DATE
-                            ORDER BY position ASC
-                        """, (city, lower_position))
-                        
-                        occupied_positions = [row['position'] for row in cur.fetchall()]
-                        
-                        while lower_position in occupied_positions:
-                            lower_position += 1
-                            if lower_position > total_positions:
-                                lower_position = total_positions
-                                break
-                        
-                        new_position_price = get_base_price(lower_position, total_positions)
+                    cur.execute("""
+                        SELECT id, position, listing_id
+                        FROM auction_bids
+                        WHERE city = %s 
+                          AND position >= %s
+                          AND status = 'active'
+                          AND created_at::date = CURRENT_DATE
+                        ORDER BY position ASC
+                    """, (city, target_position))
+                    
+                    bids_to_shift = cur.fetchall()
+                    
+                    for bid in bids_to_shift:
+                        new_pos = bid['position'] + 1
+                        new_price = get_base_price(new_pos, total_positions)
                         
                         cur.execute("""
-                            INSERT INTO auction_bids (listing_id, owner_id, city, position, bid_amount, status)
-                            VALUES (%s, %s, %s, %s, %s, 'active')
-                        """, (previous_listing_id, previous_owner_id, city, lower_position, new_position_price))
+                            UPDATE auction_bids
+                            SET position = %s, bid_amount = %s
+                            WHERE id = %s
+                        """, (new_pos, new_price, bid['id']))
                         
                         cur.execute("""
                             UPDATE listings SET auction = %s WHERE id = %s
-                        """, (lower_position, previous_listing_id))
+                        """, (new_pos, bid['listing_id']))
                 else:
                     if offered_amount < base_price:
                         return {

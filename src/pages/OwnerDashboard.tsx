@@ -451,9 +451,15 @@ export default function OwnerDashboard() {
                     >
                       <div className="font-semibold">{listing.title}</div>
                       <div className="text-sm text-muted-foreground">{listing.city}</div>
-                      <Badge variant="outline" className="mt-2">
-                        Позиция #{listing.auction}
-                      </Badge>
+                      {selectedListing?.id === listing.id && auctionInfo ? (
+                        <Badge variant="outline" className="mt-2">
+                          Позиция #{auctionInfo.positions.find(p => p.booking_info?.listing_id === listing.id)?.position || '—'}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="mt-2 opacity-50">
+                          Выберите для просмотра
+                        </Badge>
+                      )}
                     </div>
                   ))}
                 </CardContent>
@@ -473,33 +479,24 @@ export default function OwnerDashboard() {
                     <CardContent className="space-y-4">
                       {auctionInfo && (
                         <>
-                          <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-4">
-                            <div className="grid grid-cols-3 gap-4 text-center">
+                          <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-3">
+                            <div className="grid grid-cols-2 gap-3 text-center">
                               <div>
-                                <div className="text-sm text-purple-700">Всего позиций</div>
-                                <div className="text-2xl font-bold text-purple-900">{auctionInfo.total_positions}</div>
-                              </div>
-                              <div>
-                                <div className="text-sm text-purple-700">Ваша текущая</div>
+                                <div className="text-xs text-purple-700">Ваша позиция</div>
                                 <div className="text-2xl font-bold text-purple-900">
-                                  #{auctionInfo.positions.find(p => p.booking_info?.listing_id === selectedListing.id)?.position || selectedListing.auction}
+                                  #{auctionInfo.positions.find(p => p.booking_info?.listing_id === selectedListing.id)?.position || '—'}
                                 </div>
                               </div>
                               <div>
-                                <div className="text-sm text-purple-700">До обновления</div>
+                                <div className="text-xs text-purple-700">До обновления</div>
                                 <div className="text-lg font-bold text-purple-900">{timeUntilReset}</div>
                               </div>
                             </div>
                           </div>
 
-                          <div className="border-t pt-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <h3 className="font-semibold">Доступные позиции:</h3>
-                              <div className="text-xs text-muted-foreground">
-                                Прокрутите, чтобы увидеть все
-                              </div>
-                            </div>
-                            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+                          <div className="border-t pt-3">
+                            <h3 className="font-semibold mb-2 text-sm">Позиции в аукционе:</h3>
+                            <div className="space-y-1.5 max-h-[450px] overflow-y-auto pr-1">
                               {[...auctionInfo.positions].reverse().map((posInfo) => {
                                 const isMyPosition = posInfo.booking_info?.listing_id === selectedListing.id;
                                 const isBooked = posInfo.is_booked && !isMyPosition;
@@ -508,14 +505,14 @@ export default function OwnerDashboard() {
                                 return (
                                   <div
                                     key={posInfo.position}
-                                    className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
-                                      isMyPosition ? 'bg-purple-50 border-purple-400' :
-                                      isBooked ? 'bg-orange-50 border-orange-300' :
-                                      'bg-white border-gray-200 hover:border-purple-300 hover:shadow-md'
+                                    className={`flex items-center justify-between p-2 rounded-lg border transition-all ${
+                                      isMyPosition ? 'bg-purple-50 border-purple-300 shadow-sm' :
+                                      isBooked ? 'bg-orange-50/50 border-orange-200' :
+                                      'bg-white border-gray-200 hover:border-purple-200 hover:shadow-sm'
                                     }`}
                                   >
-                                    <div className="flex items-center gap-3">
-                                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                                    <div className="flex items-center gap-2">
+                                      <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${
                                         posInfo.position === 1 ? 'bg-yellow-400 text-yellow-900' :
                                         posInfo.position === 2 ? 'bg-gray-300 text-gray-700' :
                                         posInfo.position === 3 ? 'bg-orange-400 text-orange-900' :
@@ -525,46 +522,40 @@ export default function OwnerDashboard() {
                                         {posInfo.position}
                                       </div>
                                       <div>
-                                        <div className="font-semibold text-lg">
+                                        <div className="font-semibold text-sm">
                                           {priceToShow} ₽
                                           {isBooked && (
-                                            <span className="text-xs text-orange-600 ml-2">
-                                              (сейчас {posInfo.current_bid}₽)
+                                            <span className="text-xs text-orange-600 ml-1 font-normal">
+                                              +5₽
                                             </span>
                                           )}
                                         </div>
                                         <div className="text-xs text-muted-foreground">
-                                          {isMyPosition ? '✓ Ваша позиция' :
-                                           isBooked ? `Занято • Перебить +5₽` :
-                                           '○ Свободно'}
+                                          {isMyPosition ? '✓ Вы здесь' :
+                                           isBooked ? 'Занято' :
+                                           'Свободно'}
                                         </div>
                                       </div>
                                     </div>
                                     
                                     {isMyPosition ? (
-                                      <Badge className="bg-purple-600">Активна</Badge>
+                                      <Badge className="bg-purple-600 text-xs px-2 py-0">Ваша</Badge>
                                     ) : (
                                       <Button
                                         size="sm"
                                         onClick={() => handleBookPosition(posInfo.position, priceToShow!)}
                                         disabled={isLoading}
-                                        className={isBooked 
+                                        className={`h-7 text-xs px-2 ${isBooked 
                                           ? "bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
                                           : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                                        }
+                                        }`}
                                       >
                                         {isLoading && selectedPosition === posInfo.position ? (
-                                          <Icon name="Loader2" size={16} className="animate-spin" />
+                                          <Icon name="Loader2" size={14} className="animate-spin" />
                                         ) : isBooked ? (
-                                          <>
-                                            <Icon name="TrendingUp" size={16} className="mr-1" />
-                                            Перебить
-                                          </>
+                                          <>Перебить</>
                                         ) : (
-                                          <>
-                                            <Icon name="Check" size={16} className="mr-1" />
-                                            Забронировать
-                                          </>
+                                          <>Забронировать</>
                                         )}
                                       </Button>
                                     )}
@@ -574,14 +565,18 @@ export default function OwnerDashboard() {
                             </div>
                           </div>
 
-                          <div className="space-y-2">
-                            <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg">
-                              <Icon name="Info" size={14} className="inline mr-1" />
-                              Бронирование действует до 00:00 по Москве. Бонусы списываются первыми.
+                          <div className="text-xs text-muted-foreground bg-gradient-to-r from-blue-50 to-purple-50 p-2.5 rounded-lg space-y-1">
+                            <div>
+                              <Icon name="Clock" size={13} className="inline mr-1" />
+                              Аукцион обновляется в 00:00 МСК
                             </div>
-                            <div className="text-xs text-muted-foreground bg-orange-50 p-3 rounded-lg">
-                              <Icon name="TrendingUp" size={14} className="inline mr-1" />
-                              Можно перебить чужую ставку, доплатив +5₽. Предыдущий владелец опустится на следующую свободную позицию.
+                            <div>
+                              <Icon name="TrendingUp" size={13} className="inline mr-1" />
+                              При перебивании все ниже сдвигаются на +1 позицию
+                            </div>
+                            <div>
+                              <Icon name="Info" size={13} className="inline mr-1" />
+                              Без аукциона отель размещается в конце бесплатно
                             </div>
                           </div>
                         </>
