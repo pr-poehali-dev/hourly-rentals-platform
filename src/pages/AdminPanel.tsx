@@ -132,6 +132,18 @@ export default function AdminPanel() {
     });
   }, [listings, selectedCity, selectedType]);
 
+  // Группировка объектов по городам
+  const groupedByCity = useMemo(() => {
+    const groups: { [city: string]: any[] } = {};
+    filteredListings.forEach(listing => {
+      if (!groups[listing.city]) {
+        groups[listing.city] = [];
+      }
+      groups[listing.city].push(listing);
+    });
+    return groups;
+  }, [filteredListings]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-purple-200 shadow-sm">
@@ -273,81 +285,102 @@ export default function AdminPanel() {
             <Icon name="Loader2" size={48} className="animate-spin text-purple-600" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredListings.map((listing) => (
-              <Card key={listing.id} className={listing.is_archived ? 'opacity-60' : ''}>
-                <div className="relative">
-                  {listing.image_url ? (
-                    <img src={listing.image_url} alt={listing.title} className="h-48 w-full object-cover" />
-                  ) : (
-                    <div className="h-48 bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center text-6xl">
-                      🏨
-                    </div>
-                  )}
-                  {listing.logo_url && (
-                    <div className="absolute top-3 right-3 w-12 h-12 border rounded bg-white/90 backdrop-blur-sm p-1 flex items-center justify-center">
-                      <img src={listing.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
-                    </div>
-                  )}
-                  {listing.is_archived && (
-                    <Badge variant="secondary" className="absolute top-3 left-3">Архив</Badge>
-                  )}
+          <div className="space-y-8">
+            {Object.entries(groupedByCity).sort(([cityA], [cityB]) => cityA.localeCompare(cityB)).map(([city, cityListings]) => (
+              <div key={city}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Icon name="MapPin" size={20} className="text-purple-600" />
+                    <h3 className="text-2xl font-bold">{city}</h3>
+                  </div>
+                  <Badge variant="secondary" className="text-base px-3 py-1">
+                    {cityListings.length}
+                  </Badge>
                 </div>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-xl mb-2">{listing.title}</CardTitle>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Icon name="MapPin" size={14} />
-                        <span>{listing.city}, {listing.district}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {cityListings.map((listing) => (
+                    <Card key={listing.id} className={listing.is_archived ? 'opacity-60' : ''}>
+                      <div className="relative">
+                        {listing.image_url ? (
+                          <img src={listing.image_url} alt={listing.title} className="h-48 w-full object-cover" />
+                        ) : (
+                          <div className="h-48 bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center text-6xl">
+                            🏨
+                          </div>
+                        )}
+                        {listing.logo_url && (
+                          <div className="absolute top-3 right-3 w-12 h-12 border rounded bg-white/90 backdrop-blur-sm p-1 flex items-center justify-center">
+                            <img src={listing.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
+                          </div>
+                        )}
+                        {listing.is_archived && (
+                          <Badge variant="secondary" className="absolute top-3 left-3">Архив</Badge>
+                        )}
                       </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Цена:</span>
-                      <span className="text-lg font-bold text-purple-600">{listing.price} ₽/час</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Рейтинг:</span>
-                      <div className="flex items-center gap-1">
-                        <Icon name="Star" size={14} className="text-yellow-500" />
-                        <span className="font-semibold">{listing.rating}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Позиция:</span>
-                      <Badge variant="outline">#{listing.auction}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Номеров:</span>
-                      <span className="font-semibold">{listing.rooms?.length || 0}</span>
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => handleEdit(listing)}
-                      >
-                        <Icon name="Edit" size={16} className="mr-1" />
-                        Редактировать
-                      </Button>
-                      {!listing.is_archived && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleArchive(listing.id)}
-                        >
-                          <Icon name="Archive" size={16} />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                      <CardHeader>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-xl mb-2">{listing.title}</CardTitle>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Icon name="Building" size={14} />
+                              <span>{listing.district}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Тип:</span>
+                            <Badge variant="outline">
+                              {listing.type === 'hotel' ? '🏨 Отель' : '🏠 Апартаменты'}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Цена:</span>
+                            <span className="text-lg font-bold text-purple-600">{listing.price} ₽/час</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Рейтинг:</span>
+                            <div className="flex items-center gap-1">
+                              <Icon name="Star" size={14} className="text-yellow-500" />
+                              <span className="font-semibold">{listing.rating}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Позиция:</span>
+                            <Badge variant="outline">#{listing.auction}</Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Номеров:</span>
+                            <span className="font-semibold">{listing.rooms?.length || 0}</span>
+                          </div>
+                          <div className="flex gap-2 mt-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => handleEdit(listing)}
+                            >
+                              <Icon name="Edit" size={16} className="mr-1" />
+                              Редактировать
+                            </Button>
+                            {!listing.is_archived && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleArchive(listing.id)}
+                              >
+                                <Icon name="Archive" size={16} />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
