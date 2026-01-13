@@ -259,12 +259,91 @@ def handler(event: dict, context) -> dict:
                 'isBase64Encoded': False
             }
         
-        # PATCH - изменение позиции объекта
+        # PATCH - изменение позиции объекта или модерация
         elif method == 'PATCH':
             body = json.loads(event.get('body', '{}'))
             action = body.get('action')
             
-            if action == 'update_position':
+            if action == 'submit_for_moderation':
+                listing_id = body.get('listing_id')
+                
+                if not listing_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Требуется listing_id'}),
+                        'isBase64Encoded': False
+                    }
+                
+                cur.execute("""
+                    UPDATE listings
+                    SET submitted_for_moderation = TRUE, 
+                        submitted_at = CURRENT_TIMESTAMP,
+                        moderation_status = 'pending'
+                    WHERE id = %s
+                    RETURNING id, title, moderation_status
+                """, (listing_id,))
+                
+                result = cur.fetchone()
+                conn.commit()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'message': 'Объект отправлен на модерацию',
+                        'listing': dict(result)
+                    }, default=str),
+                    'isBase64Encoded': False
+                }
+            
+            elif action == 'moderate':
+                listing_id = body.get('listing_id')
+                moderation_status = body.get('status')
+                moderation_comment = body.get('comment', '')
+                
+                if not listing_id or not moderation_status:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Требуется listing_id и status'}),
+                        'isBase64Encoded': False
+                    }
+                
+                if moderation_status not in ['approved', 'needs_changes', 'pending']:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Неверный статус модерации'}),
+                        'isBase64Encoded': False
+                    }
+                
+                cur.execute("""
+                    UPDATE listings
+                    SET moderation_status = %s,
+                        moderation_comment = %s,
+                        moderated_by = %s,
+                        moderated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                    RETURNING id, title, moderation_status, moderation_comment
+                """, (moderation_status, moderation_comment, admin.get('admin_id'), listing_id))
+                
+                result = cur.fetchone()
+                conn.commit()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'message': 'Модерация обновлена',
+                        'listing': dict(result)
+                    }, default=str),
+                    'isBase64Encoded': False
+                }
+            
+            elif action == 'update_position':
                 listing_id = body.get('listing_id')
                 new_position = body.get('position')
                 

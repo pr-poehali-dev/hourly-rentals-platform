@@ -64,6 +64,9 @@ export default function AdminPanel() {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [subscriptionDialog, setSubscriptionDialog] = useState<{ open: boolean; listing: any | null }>({ open: false, listing: null });
   const [subscriptionDays, setSubscriptionDays] = useState<number>(30);
+  const [moderationDialog, setModerationDialog] = useState<{ open: boolean; listing: any | null }>({ open: false, listing: null });
+  const [moderationStatus, setModerationStatus] = useState<string>('approved');
+  const [moderationComment, setModerationComment] = useState<string>('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -158,6 +161,40 @@ export default function AdminPanel() {
     setShowForm(false);
     setSelectedListing(null);
     loadListings();
+  };
+
+  const handleModerate = (listing: any) => {
+    setModerationDialog({ open: true, listing });
+    setModerationStatus(listing.moderation_status || 'approved');
+    setModerationComment(listing.moderation_comment || '');
+  };
+
+  const handleModerationSubmit = async () => {
+    if (!moderationDialog.listing) return;
+
+    try {
+      await api.moderateListing(
+        token!,
+        moderationDialog.listing.id,
+        moderationStatus,
+        moderationComment
+      );
+
+      toast({
+        title: 'Успешно',
+        description: 'Модерация обновлена',
+      });
+
+      setModerationDialog({ open: false, listing: null });
+      setModerationComment('');
+      loadListings();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось обновить модерацию',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleChangePosition = async (listingId: number, newPosition: number) => {
@@ -499,31 +536,66 @@ export default function AdminPanel() {
                               <LiveCountdown expiresAt={listing.subscription_expires_at} />
                             </div>
                           </div>
-                          <div className="flex gap-2 mt-4">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1"
-                              onClick={() => handleEdit(listing)}
-                            >
-                              <Icon name="Edit" size={16} className="mr-1" />
-                              Редактировать
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSubscriptionDialog({ open: true, listing })}
-                              title="Установить подписку"
-                            >
-                              <Icon name="Clock" size={16} />
-                            </Button>
-                            {!listing.is_archived && (
+                          
+                          {listing.submitted_for_moderation && (
+                            <div className="pt-2 border-t">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-semibold">Модерация:</span>
+                                <Badge variant={
+                                  listing.moderation_status === 'approved' ? 'default' :
+                                  listing.moderation_status === 'needs_changes' ? 'destructive' : 'secondary'
+                                }>
+                                  {listing.moderation_status === 'approved' ? '✓ Одобрено' :
+                                   listing.moderation_status === 'needs_changes' ? '⚠ Нужны правки' : '⏳ На проверке'}
+                                </Badge>
+                              </div>
+                              {listing.moderation_comment && (
+                                <div className="text-xs text-muted-foreground bg-yellow-50 p-2 rounded border border-yellow-200">
+                                  <div className="font-semibold mb-1">Комментарий модератора:</div>
+                                  {listing.moderation_comment}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          <div className="flex flex-col gap-2 mt-4">
+                            <div className="flex gap-2">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleArchive(listing.id)}
+                                className="flex-1"
+                                onClick={() => handleEdit(listing)}
                               >
-                                <Icon name="Archive" size={16} />
+                                <Icon name="Edit" size={16} className="mr-1" />
+                                Редактировать
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSubscriptionDialog({ open: true, listing })}
+                                title="Установить подписку"
+                              >
+                                <Icon name="Clock" size={16} />
+                              </Button>
+                              {!listing.is_archived && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleArchive(listing.id)}
+                                >
+                                  <Icon name="Archive" size={16} />
+                                </Button>
+                              )}
+                            </div>
+                            
+                            {listing.submitted_for_moderation && adminInfo?.role === 'superadmin' && (
+                              <Button
+                                variant={listing.moderation_status === 'approved' ? 'secondary' : 'default'}
+                                size="sm"
+                                className="w-full"
+                                onClick={() => handleModerate(listing)}
+                              >
+                                <Icon name="CheckCircle" size={16} className="mr-1" />
+                                {listing.moderation_status === 'approved' ? 'Изменить модерацию' : 'Модерировать'}
                               </Button>
                             )}
                           </div>
@@ -578,6 +650,76 @@ export default function AdminPanel() {
               </Button>
               <Button onClick={handleSetSubscription} className="flex-1">
                 Установить
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={moderationDialog.open} onOpenChange={(open) => setModerationDialog({ open, listing: moderationDialog.listing })}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Модерация объекта</DialogTitle>
+              <DialogDescription>
+                {moderationDialog.listing?.title}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Статус модерации</label>
+                <Select value={moderationStatus} onValueChange={setModerationStatus}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="approved">
+                      <div className="flex items-center gap-2">
+                        <Icon name="CheckCircle" size={16} className="text-green-600" />
+                        Одобрено
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="needs_changes">
+                      <div className="flex items-center gap-2">
+                        <Icon name="AlertCircle" size={16} className="text-red-600" />
+                        Нужны правки
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="pending">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Clock" size={16} className="text-gray-600" />
+                        На проверке
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-2 block">Комментарий для сотрудника</label>
+                <textarea
+                  className="w-full min-h-[100px] p-3 border rounded-md resize-y"
+                  placeholder="Укажите, что нужно исправить..."
+                  value={moderationComment}
+                  onChange={(e) => setModerationComment(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Сотрудник увидит этот комментарий и сможет внести правки
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setModerationDialog({ open: false, listing: null })} 
+                className="flex-1"
+              >
+                Отмена
+              </Button>
+              <Button 
+                onClick={handleModerationSubmit} 
+                className="flex-1 bg-gradient-to-r from-green-600 to-green-700"
+              >
+                <Icon name="Check" size={16} className="mr-2" />
+                Сохранить
               </Button>
             </div>
           </DialogContent>

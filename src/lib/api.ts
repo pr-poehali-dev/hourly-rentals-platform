@@ -368,6 +368,38 @@ export const api = {
     return response.json();
   },
 
+  submitForModeration: async (token: string, listingId: number) => {
+    const response = await fetch(API_URLS.adminListings, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action: 'submit_for_moderation', listing_id: listingId }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+
+  moderateListing: async (token: string, listingId: number, status: string, comment: string) => {
+    const response = await fetch(API_URLS.adminListings, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action: 'moderate', listing_id: listingId, status, comment }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+
   // Управление сотрудниками
   getEmployees: async (token: string) => {
     const response = await fetch(API_URLS.adminEmployees, {

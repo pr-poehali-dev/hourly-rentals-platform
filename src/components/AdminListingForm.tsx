@@ -493,6 +493,8 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
       console.log('Sending to server:', finalData);
       console.log('Rooms count:', finalData.rooms?.length);
 
+      let createdOrUpdatedId = listing?.id;
+      
       if (listing) {
         const updated = await api.updateListing(token, listing.id, finalData);
         console.log('✅ Server returned updated listing:', updated);
@@ -506,11 +508,26 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
         const freshData = await api.getListings(token, false);
         console.log('🔄 Reloaded fresh data from server');
       } else {
-        await api.createListing(token, finalData);
+        const created = await api.createListing(token, finalData);
+        createdOrUpdatedId = created.id;
+        
         toast({
           title: 'Успешно',
           description: 'Объект создан',
         });
+      }
+      
+      // Автоматически отправить на модерацию после создания/редактирования
+      if (createdOrUpdatedId) {
+        try {
+          await api.submitForModeration(token, createdOrUpdatedId);
+          toast({
+            title: 'Отправлено на модерацию',
+            description: 'Объект отправлен на проверку модератору',
+          });
+        } catch (error) {
+          console.error('Failed to submit for moderation:', error);
+        }
       }
       
       // Сброс состояния перед закрытием
