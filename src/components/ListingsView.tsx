@@ -61,6 +61,31 @@ export default function ListingsView({
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [selectedPhone, setSelectedPhone] = useState('');
 
+  // Получаем первую фотографию из массива или строку
+  const getFirstImage = (imageUrl: any) => {
+    if (!imageUrl) return null;
+    
+    // Если это строка, пытаемся распарсить как JSON
+    if (typeof imageUrl === 'string') {
+      try {
+        const parsed = JSON.parse(imageUrl);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed[0];
+        }
+      } catch {
+        // Если не JSON, возвращаем как есть
+        return imageUrl;
+      }
+    }
+    
+    // Если это уже массив
+    if (Array.isArray(imageUrl) && imageUrl.length > 0) {
+      return imageUrl[0];
+    }
+    
+    return null;
+  };
+
   const sortedListings = [...filteredListings].sort((a, b) => {
     switch (sortBy) {
       case 'price-asc':
@@ -155,8 +180,8 @@ export default function ListingsView({
               >
                 <div className="flex gap-4 p-4">
                   <div className="relative w-24 h-24 flex-shrink-0">
-                    {listing.image_url ? (
-                      <img src={listing.image_url} alt={listing.title} className="w-full h-full object-cover rounded-lg" />
+                    {getFirstImage(listing.image_url) ? (
+                      <img src={getFirstImage(listing.image_url)!} alt={listing.title} className="w-full h-full object-cover rounded-lg" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-purple-200 to-pink-200 rounded-lg flex items-center justify-center text-3xl">
                         🏨
@@ -211,8 +236,8 @@ export default function ListingsView({
             onClick={() => onCardClick(listing)}
           >
             <div className="relative overflow-hidden">
-              {listing.image_url ? (
-                <img src={listing.image_url} alt={listing.title} className="h-48 w-full object-cover group-hover:scale-110 transition-transform duration-300" />
+              {getFirstImage(listing.image_url) ? (
+                <img src={getFirstImage(listing.image_url)!} alt={listing.title} className="h-48 w-full object-cover group-hover:scale-110 transition-transform duration-300" />
               ) : (
                 <div className="h-48 bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center text-6xl group-hover:scale-110 transition-transform duration-300">
                   🏨
