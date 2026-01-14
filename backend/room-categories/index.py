@@ -14,9 +14,10 @@ def verify_owner_token(token: str):
         conn = psycopg2.connect(dsn)
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
+        # Используем Simple Query Protocol (без параметров)
+        safe_token = token.replace("'", "''")  # Экранируем одинарные кавычки
         cur.execute(
-            "SELECT * FROM t_p39732784_hourly_rentals_platf.owners WHERE token = %s",
-            (token,)
+            f"SELECT * FROM t_p39732784_hourly_rentals_platf.owners WHERE token = '{safe_token}'"
         )
         owner = cur.fetchone()
         
@@ -75,9 +76,9 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
             
+            # Simple Query Protocol
             cur.execute(
-                "SELECT * FROM t_p39732784_hourly_rentals_platf.listings WHERE id = %s AND owner_id = %s",
-                (listing_id, owner['id'])
+                f"SELECT * FROM t_p39732784_hourly_rentals_platf.listings WHERE id = {listing_id} AND owner_id = {owner['id']}"
             )
             listing = cur.fetchone()
             
@@ -90,9 +91,9 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
             
+            # Simple Query Protocol
             cur.execute(
-                "SELECT * FROM t_p39732784_hourly_rentals_platf.room_categories WHERE listing_id = %s ORDER BY id",
-                (listing_id,)
+                f"SELECT * FROM t_p39732784_hourly_rentals_platf.room_categories WHERE listing_id = {listing_id} ORDER BY id"
             )
             categories = cur.fetchall()
             print(f"[DEBUG] Found {len(categories)} categories for listing {listing_id}")
@@ -134,26 +135,25 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
             
+            # Simple Query Protocol
             cur.execute(
-                "DELETE FROM t_p39732784_hourly_rentals_platf.room_categories WHERE listing_id = %s",
-                (listing_id,)
+                f"DELETE FROM t_p39732784_hourly_rentals_platf.room_categories WHERE listing_id = {listing_id}"
             )
             
             for category in categories:
+                # Simple Query Protocol - экранируем данные
+                name = str(category.get('name', '')).replace("'", "''")
+                price = float(category.get('price_per_hour', 0))
+                sqm = float(category.get('square_meters', 0))
+                features = json.dumps(category.get('features', [])).replace("'", "''")
+                images = json.dumps(category.get('image_urls', [])).replace("'", "''")
+                
                 cur.execute(
-                    """
+                    f"""
                     INSERT INTO t_p39732784_hourly_rentals_platf.room_categories 
                     (listing_id, name, price_per_hour, square_meters, features, image_urls)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    """,
-                    (
-                        listing_id,
-                        category.get('name'),
-                        category.get('price_per_hour'),
-                        category.get('square_meters'),
-                        category.get('features', []),
-                        category.get('image_urls', [])
-                    )
+                    VALUES ({listing_id}, '{name}', {price}, {sqm}, '{features}'::jsonb, '{images}'::jsonb)
+                    """
                 )
             
             conn.commit()
