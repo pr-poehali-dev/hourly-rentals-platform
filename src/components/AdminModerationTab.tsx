@@ -216,6 +216,14 @@ export default function AdminModerationTab({ token }: ModerationTabProps) {
 
                   <div className="flex gap-2 pt-2">
                     <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(`/listing/${listing.id}`, '_blank')}
+                    >
+                      <Icon name="ExternalLink" size={16} className="mr-2" />
+                      Посмотреть
+                    </Button>
+                    <Button
                       variant="default"
                       size="sm"
                       onClick={async () => {
@@ -235,6 +243,7 @@ export default function AdminModerationTab({ token }: ModerationTabProps) {
                         }
                       }}
                       disabled={listing.moderation_status === 'approved'}
+                      className="bg-green-600 hover:bg-green-700"
                     >
                       <Icon name="CheckCircle" size={16} className="mr-2" />
                       Одобрить
