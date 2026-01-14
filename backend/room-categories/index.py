@@ -24,7 +24,10 @@ def verify_owner_token(token: str):
         conn.close()
         
         return dict(owner) if owner else None
-    except Exception:
+    except Exception as e:
+        print(f'[ERROR] verify_owner_token failed: {type(e).__name__}: {str(e)}')
+        import traceback
+        traceback.print_exc()
         return None
 
 def handler(event: dict, context) -> dict:
