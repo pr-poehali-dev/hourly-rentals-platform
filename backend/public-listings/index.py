@@ -38,7 +38,8 @@ def handler(event: dict, context) -> dict:
             SELECT 
                 l.id, l.title, l.type, l.city, l.district, l.price, l.rating, l.reviews, 
                 l.auction, l.image_url, l.logo_url, l.metro, l.metro_walk as "metroWalk", 
-                l.has_parking as "hasParking", l.features, l.lat, l.lng, 
+                l.has_parking as "hasParking", l.parking_type, l.parking_price_per_hour,
+                l.features, l.lat, l.lng, 
                 l.min_hours as "minHours", l.phone, l.telegram,
                 l.price_warning_holidays, l.price_warning_daytime
             FROM t_p39732784_hourly_rentals_platf.listings l
