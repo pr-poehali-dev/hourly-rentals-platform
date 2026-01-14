@@ -6,6 +6,7 @@ const API_URLS = {
   adminEmployees: 'https://functions.poehali.dev/ca59381a-030d-421c-8c98-057bb7ae12e4',
   employeeBonuses: 'https://functions.poehali.dev/e7b4566b-8aa8-4db2-a866-4ba2231208a3',
   ownerListings: 'https://functions.poehali.dev/f431775b-031f-4417-b3eb-9e0475119162',
+  ownerUpdateListing: 'https://functions.poehali.dev/3e708f67-7174-4fd3-84a6-6541bcc2186b',
   publicListings: 'https://functions.poehali.dev/38a2f104-026e-40ea-80dc-0c07c014f868',
   ownerAuth: 'https://functions.poehali.dev/381f57fd-5365-49e9-bb38-088d8db34102',
   ownerPasswordRecovery: 'https://functions.poehali.dev/e8d34dd8-8e0d-4d25-b36b-499898e019c7',
@@ -269,6 +270,23 @@ export const api = {
         'X-Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ id }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+
+  // Обновление объекта владельцем
+  ownerUpdateListing: async (token: string, listingId: number, data: any) => {
+    const response = await fetch(API_URLS.ownerUpdateListing, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ listing_id: listingId, ...data }),
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Network error' }));

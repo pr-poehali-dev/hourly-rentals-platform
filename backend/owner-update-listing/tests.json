@@ -1,0 +1,33 @@
+{
+  "tests": [
+    {
+      "name": "Update listing by owner - unauthorized",
+      "method": "PUT",
+      "path": "/",
+      "headers": {},
+      "body": {
+        "listing_id": 1,
+        "price": 5000
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Update listing - missing listing_id",
+      "method": "PUT",
+      "path": "/",
+      "headers": {},
+      "body": {
+        "price": 5000
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

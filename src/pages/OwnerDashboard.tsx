@@ -8,6 +8,7 @@ import { api } from '@/lib/api';
 import OwnerDashboardHeader from '@/components/OwnerDashboardHeader';
 import OwnerOverviewTab from '@/components/OwnerOverviewTab';
 import OwnerAuctionTab from '@/components/OwnerAuctionTab';
+import OwnerEditListingDialog from '@/components/OwnerEditListingDialog';
 
 interface Owner {
   id: number;
@@ -28,6 +29,17 @@ interface Listing {
   district: string;
   subscription_expires_at: string | null;
   is_archived: boolean;
+  moderation_status?: string;
+  price?: number;
+  square_meters?: number;
+  logo_url?: string;
+  features?: string[];
+  metro?: string;
+  metro_walk?: number;
+  has_parking?: boolean;
+  min_hours?: number;
+  lat?: number;
+  lng?: number;
 }
 
 interface SubscriptionInfo {
@@ -100,6 +112,7 @@ export default function OwnerDashboard() {
   const [isTopupLoading, setIsTopupLoading] = useState(false);
   const [timeUntilReset, setTimeUntilReset] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'auction'>('overview');
+  const [editingListing, setEditingListing] = useState<any | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -346,6 +359,18 @@ export default function OwnerDashboard() {
     }
   };
 
+  const handleEditListing = (listing: any) => {
+    setEditingListing(listing);
+  };
+
+  const handleEditSuccess = async () => {
+    await loadOwnerListings();
+    toast({
+      title: 'Изменения отправлены',
+      description: 'Объект будет проверен администратором',
+    });
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('ownerToken');
     localStorage.removeItem('ownerId');
@@ -392,6 +417,7 @@ export default function OwnerDashboard() {
                 transactions={transactions}
                 isLoading={isLoading}
                 onExtendSubscription={handleExtendSubscription}
+                onEditListing={handleEditListing}
               />
             </TabsContent>
 
@@ -412,6 +438,14 @@ export default function OwnerDashboard() {
           </Tabs>
         )}
       </main>
+
+      <OwnerEditListingDialog
+        listing={editingListing}
+        open={!!editingListing}
+        onClose={() => setEditingListing(null)}
+        onSuccess={handleEditSuccess}
+        token={token!}
+      />
     </div>
   );
 }

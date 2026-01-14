@@ -15,6 +15,7 @@ interface HotelSubscriptionCardProps {
     subscription_expires_at: string | null;
     is_archived: boolean;
     auction: number;
+    moderation_status?: string;
   };
   subscriptionInfo: {
     days_left: number | null;
@@ -25,10 +26,11 @@ interface HotelSubscriptionCardProps {
     };
   } | null;
   onExtend: (listingId: number, days: number) => void;
+  onEdit?: (listing: any) => void;
   isLoading: boolean;
 }
 
-export default function HotelSubscriptionCard({ listing, subscriptionInfo, onExtend, isLoading }: HotelSubscriptionCardProps) {
+export default function HotelSubscriptionCard({ listing, subscriptionInfo, onExtend, onEdit, isLoading }: HotelSubscriptionCardProps) {
   const [timeLeft, setTimeLeft] = useState('');
 
   useEffect(() => {
@@ -85,7 +87,12 @@ export default function HotelSubscriptionCard({ listing, subscriptionInfo, onExt
             🏨
           </div>
         )}
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 flex gap-2">
+          {listing.moderation_status === 'pending' && (
+            <Badge className="bg-orange-500">
+              На модерации
+            </Badge>
+          )}
           {isExpired ? (
             <Badge variant="destructive" className="bg-red-600">
               Неактивно
@@ -186,6 +193,18 @@ export default function HotelSubscriptionCard({ listing, subscriptionInfo, onExt
               }
             </div>
           </div>
+        )}
+
+        {onEdit && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(listing)}
+            className="w-full mt-2"
+          >
+            <Icon name="Edit" size={14} className="mr-2" />
+            Редактировать объект
+          </Button>
         )}
       </CardContent>
     </Card>

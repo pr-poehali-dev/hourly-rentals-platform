@@ -58,9 +58,14 @@ def handler(event: dict, context) -> dict:
             if moderation_filter == 'pending':
                 # Только объекты на модерации
                 cur.execute("""
-                    SELECT * FROM listings
-                    WHERE submitted_for_moderation = true
-                    ORDER BY submitted_at DESC
+                    SELECT l.*, 
+                           e.name as created_by_employee_name,
+                           o.full_name as owner_name
+                    FROM listings l
+                    LEFT JOIN employees e ON l.created_by_employee_id = e.id
+                    LEFT JOIN owners o ON l.owner_id = o.id
+                    WHERE l.submitted_for_moderation = true
+                    ORDER BY l.submitted_at DESC
                 """)
             elif show_archived:
                 cur.execute("SELECT * FROM listings ORDER BY created_at DESC")

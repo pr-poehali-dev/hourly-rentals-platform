@@ -39,6 +39,7 @@ interface OwnerOverviewTabProps {
   transactions: Transaction[];
   isLoading: boolean;
   onExtendSubscription: (listingId: number, days: number) => Promise<void>;
+  onEditListing?: (listing: any) => void;
 }
 
 export default function OwnerOverviewTab({
@@ -47,6 +48,7 @@ export default function OwnerOverviewTab({
   transactions,
   isLoading,
   onExtendSubscription,
+  onEditListing,
 }: OwnerOverviewTabProps) {
   return (
     <div className="space-y-6">
@@ -57,6 +59,7 @@ export default function OwnerOverviewTab({
             listing={listing}
             subscriptionInfo={subscriptionInfo.get(listing.id) || null}
             onExtend={onExtendSubscription}
+            onEdit={onEditListing}
             isLoading={isLoading}
           />
         ))}

@@ -32,6 +32,7 @@ def handler(event: dict, context) -> dict:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         # Получаем только активные объекты (не в архиве)
+        # Показываем только одобренные объекты или те, что не проходили модерацию
         # Сортировка: сначала по городу (алфавит), затем по позиции auction внутри города
         cur.execute("""
             SELECT 
@@ -42,6 +43,7 @@ def handler(event: dict, context) -> dict:
                 l.price_warning_holidays, l.price_warning_daytime
             FROM listings l
             WHERE l.is_archived = false 
+            AND (l.moderation_status IS NULL OR l.moderation_status = 'approved')
             ORDER BY l.city ASC, l.auction ASC, l.id ASC
         """)
         

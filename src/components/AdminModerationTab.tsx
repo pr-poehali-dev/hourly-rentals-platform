@@ -119,7 +119,7 @@ export default function AdminModerationTab({ token }: ModerationTabProps) {
         <div>
           <h2 className="text-2xl font-bold">Модерация объектов</h2>
           <p className="text-muted-foreground">
-            Проверяйте и одобряйте объекты, добавленные сотрудниками
+            Проверяйте объекты, добавленные сотрудниками, или изменённые владельцами
           </p>
         </div>
         <Badge variant="outline" className="text-lg px-4 py-2">
@@ -172,6 +172,12 @@ export default function AdminModerationTab({ token }: ModerationTabProps) {
                       <div className="flex items-center gap-2">
                         <Icon name="User" size={16} />
                         <span>Добавил: {listing.created_by_employee_name}</span>
+                      </div>
+                    )}
+                    {listing.owner_name && !listing.created_by_employee_name && (
+                      <div className="flex items-center gap-2">
+                        <Icon name="UserCog" size={16} />
+                        <span>Изменил: {listing.owner_name}</span>
                       </div>
                     )}
                     {listing.submitted_at && (
