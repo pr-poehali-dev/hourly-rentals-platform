@@ -74,12 +74,39 @@ export default function HotelSubscriptionCard({ listing, subscriptionInfo, onExt
   const isExpiringSoon = daysLeft !== null && daysLeft <= 7;
   const isExpired = daysLeft === 0 || listing.is_archived;
 
+  // Получаем первую фотографию из массива или строку
+  const getFirstImage = () => {
+    if (!listing.image_url) return null;
+    
+    // Если это строка, пытаемся распарсить как JSON
+    if (typeof listing.image_url === 'string') {
+      try {
+        const parsed = JSON.parse(listing.image_url);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed[0];
+        }
+      } catch {
+        // Если не JSON, возвращаем как есть
+        return listing.image_url;
+      }
+    }
+    
+    // Если это уже массив
+    if (Array.isArray(listing.image_url) && listing.image_url.length > 0) {
+      return listing.image_url[0];
+    }
+    
+    return null;
+  };
+
+  const firstImage = getFirstImage();
+
   return (
     <Card className={`overflow-hidden ${isExpired ? 'opacity-60' : ''}`}>
       <div className="relative h-48 bg-gradient-to-br from-purple-100 to-pink-100">
-        {listing.image_url ? (
+        {firstImage ? (
           <img 
-            src={listing.image_url} 
+            src={firstImage} 
             alt={listing.title}
             className="w-full h-full object-cover"
           />
