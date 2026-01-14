@@ -57,6 +57,7 @@ def handler(event: dict, context) -> dict:
             
             if moderation_filter == 'pending':
                 # Только объекты на модерации
+                print(f"[DEBUG] Fetching pending moderation listings")
                 cur.execute("""
                     SELECT l.*, 
                            e.name as created_by_employee_name,
@@ -73,6 +74,7 @@ def handler(event: dict, context) -> dict:
                 cur.execute("SELECT * FROM t_p39732784_hourly_rentals_platf.listings WHERE is_archived = false ORDER BY auction ASC")
             
             listings = cur.fetchall()
+            print(f"[DEBUG] Total listings fetched: {len(listings)}, moderation_filter={moderation_filter}")
             
             # Получаем комнаты и станции метро для каждого объекта
             for listing in listings:
