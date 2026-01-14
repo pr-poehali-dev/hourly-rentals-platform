@@ -14,6 +14,7 @@ import AdminOwnersTab from '@/components/AdminOwnersTab';
 import AdminEmployeesTab from '@/components/AdminEmployeesTab';
 import AdminBonusesTab from '@/components/AdminBonusesTab';
 import AdminAllActionsTab from '@/components/AdminAllActionsTab';
+import AdminModerationTab from '@/components/AdminModerationTab';
 
 function LiveCountdown({ expiresAt }: { expiresAt: string | null }) {
   const [timeLeft, setTimeLeft] = useState('');
@@ -54,7 +55,7 @@ function LiveCountdown({ expiresAt }: { expiresAt: string | null }) {
 }
 
 export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState<'listings' | 'owners' | 'employees' | 'bonuses' | 'all-actions'>('listings');
+  const [activeTab, setActiveTab] = useState<'listings' | 'moderation' | 'owners' | 'employees' | 'bonuses' | 'all-actions'>('listings');
   const [listings, setListings] = useState<any[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -318,14 +319,24 @@ export default function AdminPanel() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-6 border-b">
           {hasPermission('listings') && (
-            <Button
-              variant={activeTab === 'listings' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('listings')}
-              className="rounded-b-none"
-            >
-              <Icon name="Hotel" size={18} className="mr-2" />
-              Объекты
-            </Button>
+            <>
+              <Button
+                variant={activeTab === 'listings' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('listings')}
+                className="rounded-b-none"
+              >
+                <Icon name="Hotel" size={18} className="mr-2" />
+                Объекты
+              </Button>
+              <Button
+                variant={activeTab === 'moderation' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('moderation')}
+                className="rounded-b-none"
+              >
+                <Icon name="Shield" size={18} className="mr-2" />
+                Модерация
+              </Button>
+            </>
           )}
           {hasPermission('owners') && (
             <Button
@@ -373,6 +384,8 @@ export default function AdminPanel() {
             token={token!}
             onClose={handleFormClose}
           />
+        ) : activeTab === 'moderation' && hasPermission('listings') ? (
+          <AdminModerationTab token={token!} />
         ) : activeTab === 'owners' && hasPermission('owners') ? (
           <AdminOwnersTab token={token!} />
         ) : activeTab === 'employees' && adminInfo?.role === 'superadmin' ? (

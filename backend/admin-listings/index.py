@@ -51,9 +51,18 @@ def handler(event: dict, context) -> dict:
         
         # GET - получение списка объектов
         if method == 'GET':
-            show_archived = event.get('queryStringParameters', {}).get('archived') == 'true'
+            params = event.get('queryStringParameters', {}) or {}
+            show_archived = params.get('archived') == 'true'
+            moderation_filter = params.get('moderation')
             
-            if show_archived:
+            if moderation_filter == 'pending':
+                # Только объекты на модерации
+                cur.execute("""
+                    SELECT * FROM listings
+                    WHERE submitted_for_moderation = true
+                    ORDER BY submitted_at DESC
+                """)
+            elif show_archived:
                 cur.execute("SELECT * FROM listings ORDER BY created_at DESC")
             else:
                 cur.execute("SELECT * FROM listings WHERE is_archived = false ORDER BY auction ASC")
