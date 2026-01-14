@@ -62,6 +62,7 @@ def handler(event: dict, context) -> dict:
         
         if method == 'GET':
             listing_id = event.get('queryStringParameters', {}).get('listing_id')
+            print(f"[DEBUG] GET room categories for listing_id={listing_id}, owner_id={owner['id']}")
             
             if not listing_id:
                 return {
@@ -78,6 +79,7 @@ def handler(event: dict, context) -> dict:
             listing = cur.fetchone()
             
             if not listing:
+                print(f"[DEBUG] Listing {listing_id} not found or not owned by owner {owner['id']}")
                 return {
                     'statusCode': 404,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -90,6 +92,7 @@ def handler(event: dict, context) -> dict:
                 (listing_id,)
             )
             categories = cur.fetchall()
+            print(f"[DEBUG] Found {len(categories)} categories for listing {listing_id}")
             
             cur.close()
             conn.close()
