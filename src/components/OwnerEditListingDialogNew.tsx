@@ -44,14 +44,12 @@ export default function OwnerEditListingDialogNew({
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
-    price: 0,
     district: '',
     city: '',
     metro: '',
     metro_walk: 0,
     parking_type: 'none' as 'free' | 'paid' | 'street' | 'none',
     parking_price_per_hour: 0,
-    min_hours: 1,
   });
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -61,14 +59,12 @@ export default function OwnerEditListingDialogNew({
     if (listing && open) {
       setFormData({
         title: listing.title || '',
-        price: listing.price || 0,
         district: listing.district || '',
         city: listing.city || '',
         metro: listing.metro || '',
         metro_walk: listing.metro_walk || 0,
         parking_type: listing.parking_type as any || 'none',
         parking_price_per_hour: listing.parking_price_per_hour || 0,
-        min_hours: listing.min_hours || 1,
       });
 
       try {
@@ -209,20 +205,6 @@ export default function OwnerEditListingDialogNew({
                 />
               </div>
 
-              <div>
-                <Label htmlFor="price">Базовая цена за час (₽)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
-                  required
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Указывается минимальная цена. Цены для конкретных номеров настраиваются в категориях
-                </p>
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="city">Город</Label>
@@ -262,16 +244,6 @@ export default function OwnerEditListingDialogNew({
                     onChange={(e) => setFormData({ ...formData, metro_walk: parseInt(e.target.value) || 0 })}
                   />
                 </div>
-              </div>
-
-              <div>
-                <Label htmlFor="min_hours">Минимум часов</Label>
-                <Input
-                  id="min_hours"
-                  type="number"
-                  value={formData.min_hours}
-                  onChange={(e) => setFormData({ ...formData, min_hours: parseInt(e.target.value) || 1 })}
-                />
               </div>
 
               <div className="space-y-3">
