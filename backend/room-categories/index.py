@@ -17,11 +17,12 @@ def verify_owner_token(token: str):
         conn.autocommit = True
         cur = conn.cursor()
         
-        # Используем Simple Query Protocol (без параметров)
-        safe_token = token.replace("'", "''")  # Экранируем одинарные кавычки
-        query = f"SELECT id, email, full_name, phone FROM t_p39732784_hourly_rentals_platf.owners WHERE token = '{safe_token}'"
-        print(f'[DEBUG] Executing query: {query[:80]}...')
-        cur.execute(query)
+        # Используем параметризованный запрос как в owner-auth
+        print(f'[DEBUG] Executing query with parameterized %s')
+        cur.execute(
+            "SELECT id, email, full_name, phone FROM owners WHERE token = %s",
+            (token,)
+        )
         row = cur.fetchone()
         print(f'[DEBUG] Query result: row = {row}')
         
