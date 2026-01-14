@@ -65,6 +65,15 @@ export default function AdminModerationTab({ token }: ModerationTabProps) {
   const handleModerationSubmit = async () => {
     if (!selectedListing) return;
 
+    if (moderationStatus === 'rejected' && !moderationComment.trim()) {
+      toast({
+        title: 'Ошибка',
+        description: 'Укажите причину отклонения в комментарии',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       await api.moderateListing(
         token,
@@ -78,7 +87,7 @@ export default function AdminModerationTab({ token }: ModerationTabProps) {
         description: moderationStatus === 'approved' 
           ? 'Объект одобрен и опубликован' 
           : moderationStatus === 'rejected'
-          ? 'Объект отклонен'
+          ? 'Объект отклонен, владелец сможет исправить и отправить повторно'
           : 'Статус модерации обновлен',
       });
 

@@ -12,6 +12,8 @@ interface Listing {
   district: string;
   subscription_expires_at: string | null;
   is_archived: boolean;
+  moderation_status?: string;
+  moderation_comment?: string;
 }
 
 interface SubscriptionInfo {

@@ -16,6 +16,7 @@ interface HotelSubscriptionCardProps {
     is_archived: boolean;
     auction: number;
     moderation_status?: string;
+    moderation_comment?: string;
   };
   subscriptionInfo: {
     days_left: number | null;
@@ -88,12 +89,15 @@ export default function HotelSubscriptionCard({ listing, subscriptionInfo, onExt
           </div>
         )}
         <div className="absolute top-2 right-2 flex gap-2">
-          {listing.moderation_status === 'pending' && (
+          {listing.moderation_status === 'pending' ? (
             <Badge className="bg-orange-500">
-              На модерации
+              На проверке
             </Badge>
-          )}
-          {isExpired ? (
+          ) : listing.moderation_status === 'rejected' ? (
+            <Badge variant="destructive" className="bg-red-600">
+              Отклонено
+            </Badge>
+          ) : isExpired ? (
             <Badge variant="destructive" className="bg-red-600">
               Неактивно
             </Badge>
@@ -195,6 +199,33 @@ export default function HotelSubscriptionCard({ listing, subscriptionInfo, onExt
           </div>
         )}
 
+        {listing.moderation_status === 'pending' && (
+          <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Icon name="Clock" size={18} className="text-orange-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-orange-900">
+                <p className="font-medium">Объект на проверке</p>
+                <p className="text-orange-700">Ожидает одобрения модератора</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {listing.moderation_status === 'rejected' && listing.moderation_comment && (
+          <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Icon name="AlertCircle" size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-red-900">
+                <p className="font-medium">Объект отклонён</p>
+                <p className="text-red-700 mt-1">
+                  <strong>Комментарий модератора:</strong><br />
+                  {listing.moderation_comment}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {onEdit && (
           <Button
             variant="outline"
@@ -203,7 +234,7 @@ export default function HotelSubscriptionCard({ listing, subscriptionInfo, onExt
             className="w-full mt-2"
           >
             <Icon name="Edit" size={14} className="mr-2" />
-            Редактировать объект
+            {listing.moderation_status === 'rejected' ? 'Исправить и отправить повторно' : 'Редактировать объект'}
           </Button>
         )}
       </CardContent>

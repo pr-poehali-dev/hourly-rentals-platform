@@ -139,12 +139,15 @@ export default function OwnerEditListingDialog({
   if (!listing) return null;
 
   const isPending = listing.moderation_status === 'pending';
+  const isRejected = listing.moderation_status === 'rejected';
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Редактировать объект</DialogTitle>
+          <DialogTitle>
+            {isRejected ? 'Исправить объект и отправить повторно' : 'Редактировать объект'}
+          </DialogTitle>
         </DialogHeader>
 
         {isPending && (
@@ -153,6 +156,22 @@ export default function OwnerEditListingDialog({
             <div className="text-sm">
               <p className="font-medium text-orange-900">Объект на модерации</p>
               <p className="text-orange-700">Изменения будут применены после проверки администратором</p>
+            </div>
+          </div>
+        )}
+
+        {isRejected && listing.moderation_comment && (
+          <div className="bg-red-50 border border-red-200 p-3 rounded-lg flex items-start gap-2">
+            <Icon name="AlertCircle" size={20} className="text-red-600 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-red-900">Объект был отклонён</p>
+              <p className="text-red-700 mt-1">
+                <strong>Комментарий модератора:</strong><br />
+                {listing.moderation_comment}
+              </p>
+              <p className="text-red-700 mt-2">
+                Исправьте указанные замечания и отправьте объект на проверку повторно
+              </p>
             </div>
           </div>
         )}
@@ -326,7 +345,7 @@ export default function OwnerEditListingDialog({
               ) : (
                 <>
                   <Icon name="Save" size={16} className="mr-2" />
-                  Сохранить и отправить на модерацию
+                  {isRejected ? 'Исправить и отправить повторно' : 'Сохранить и отправить на модерацию'}
                 </>
               )}
             </Button>
@@ -337,8 +356,10 @@ export default function OwnerEditListingDialog({
 
           <div className="bg-blue-50 border border-blue-200 p-3 rounded text-sm text-blue-900">
             <Icon name="Info" size={16} className="inline mr-2" />
-            После отправки изменений объект будет временно снят с публикации до проверки администратором. 
-            Подписка продолжит работать.
+            {isRejected 
+              ? 'После отправки исправлений объект снова будет проверен модератором. Подписка продолжит работать.'
+              : 'После отправки изменений объект будет временно снят с публикации до проверки администратором. Подписка продолжит работать.'
+            }
           </div>
         </form>
       </DialogContent>

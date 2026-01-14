@@ -30,6 +30,7 @@ interface Listing {
   subscription_expires_at: string | null;
   is_archived: boolean;
   moderation_status?: string;
+  moderation_comment?: string;
   price?: number;
   square_meters?: number;
   logo_url?: string;
