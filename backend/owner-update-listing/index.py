@@ -140,7 +140,7 @@ def handler(event: dict, context) -> dict:
             
             if city is not None:
                 update_fields.append("city = %s")
-                update_values.append(city)
+                update_values.append(city.strip() if isinstance(city, str) else city)
             
             if metro is not None:
                 update_fields.append("metro = %s")

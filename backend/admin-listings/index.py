@@ -151,7 +151,10 @@ def handler(event: dict, context) -> dict:
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING *
             """, (
-                body['title'], body['type'], body['city'], body['district'], 
+                body['title'].strip() if isinstance(body.get('title'), str) else body['title'], 
+                body['type'], 
+                body['city'].strip() if isinstance(body.get('city'), str) else body['city'], 
+                body['district'].strip() if isinstance(body.get('district'), str) else body['district'], 
                 body['price'], body.get('rating', 0), body.get('reviews', 0),
                 body.get('auction', 999), body.get('image_url'), body.get('metro'),
                 body.get('metro_walk', 0), body.get('has_parking', False),
@@ -272,7 +275,10 @@ def handler(event: dict, context) -> dict:
                 WHERE id=%s
                 RETURNING *
             """, (
-                body['title'], body['type'], body['city'], body['district'],
+                body['title'].strip() if isinstance(body.get('title'), str) else body['title'],
+                body['type'], 
+                body['city'].strip() if isinstance(body.get('city'), str) else body['city'],
+                body['district'].strip() if isinstance(body.get('district'), str) else body['district'],
                 body['price'], body.get('rating', 0), body.get('reviews', 0),
                 body.get('auction', 999), body.get('image_url'), body.get('metro'),
                 body.get('metro_walk', 0), body.get('has_parking', False),
