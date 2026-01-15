@@ -31,36 +31,8 @@ def handler(event: dict, context) -> dict:
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Параметры пагинации и фильтрации
-        params = event.get('queryStringParameters', {}) or {}
-        page = int(params.get('page', 1))
-        per_page = min(int(params.get('per_page', 50)), 100)  # Максимум 100 за раз
-        city = params.get('city')
-        listing_type = params.get('type')
-        
-        offset = (page - 1) * per_page
-        
-        # Подсчёт общего количества
-        count_query = """
-            SELECT COUNT(*) as total
-            FROM t_p39732784_hourly_rentals_platf.listings l
-            WHERE l.is_archived = false 
-            AND (l.moderation_status IS NULL OR l.moderation_status = 'approved')
-        """
-        count_params = []
-        
-        if city:
-            count_query += " AND l.city = %s"
-            count_params.append(city)
-        if listing_type:
-            count_query += " AND l.type = %s"
-            count_params.append(listing_type)
-        
-        cur.execute(count_query, count_params)
-        total = cur.fetchone()['total']
-        
-        # Получаем объекты с пагинацией
-        query = """
+        # Получаем все активные объекты одним запросом
+        cur.execute("""
             SELECT 
                 l.id, l.title, l.type, l.city, l.district, l.price, l.rating, l.reviews, 
                 l.auction, l.image_url, l.logo_url, l.metro, l.metro_walk as "metroWalk", 
@@ -71,21 +43,8 @@ def handler(event: dict, context) -> dict:
             FROM t_p39732784_hourly_rentals_platf.listings l
             WHERE l.is_archived = false 
             AND (l.moderation_status IS NULL OR l.moderation_status = 'approved')
-        """
-        query_params = []
-        
-        if city:
-            query += " AND l.city = %s"
-            query_params.append(city)
-        if listing_type:
-            query += " AND l.type = %s"
-            query_params.append(listing_type)
-        
-        query += " ORDER BY l.city ASC, l.auction ASC, l.id ASC"
-        query += f" LIMIT %s OFFSET %s"
-        query_params.extend([per_page, offset])
-        
-        cur.execute(query, query_params)
+            ORDER BY l.city ASC, l.auction ASC, l.id ASC
+        """)
         listings = cur.fetchall()
         
         if not listings:
@@ -142,19 +101,10 @@ def handler(event: dict, context) -> dict:
         cur.close()
         conn.close()
         
-        # Возвращаем с метаданными пагинации
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({
-                'data': listings,
-                'pagination': {
-                    'page': page,
-                    'per_page': per_page,
-                    'total': total,
-                    'total_pages': (total + per_page - 1) // per_page
-                }
-            }, default=str),
+            'body': json.dumps(listings, default=str),
             'isBase64Encoded': False
         }
         
