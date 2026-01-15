@@ -392,6 +392,36 @@ def handler(event: dict, context) -> dict:
                         'isBase64Encoded': False
                     }
                 
+                # Проверка подписки при одобрении
+                if moderation_status == 'approved':
+                    cur.execute("""
+                        SELECT subscription_expires_at 
+                        FROM t_p39732784_hourly_rentals_platf.listings 
+                        WHERE id = %s
+                    """, (listing_id,))
+                    listing_data = cur.fetchone()
+                    
+                    if not listing_data or not listing_data['subscription_expires_at']:
+                        return {
+                            'statusCode': 400,
+                            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                            'body': json.dumps({'error': 'Невозможно одобрить объект: подписка не активна'}),
+                            'isBase64Encoded': False
+                        }
+                    
+                    from datetime import datetime
+                    expires_at = listing_data['subscription_expires_at']
+                    if isinstance(expires_at, str):
+                        expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                    
+                    if expires_at <= datetime.now(expires_at.tzinfo):
+                        return {
+                            'statusCode': 400,
+                            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                            'body': json.dumps({'error': 'Невозможно одобрить объект: срок подписки истёк'}),
+                            'isBase64Encoded': False
+                        }
+                
                 cur.execute("""
                     UPDATE t_p39732784_hourly_rentals_platf.listings
                     SET moderation_status = %s,
@@ -400,7 +430,7 @@ def handler(event: dict, context) -> dict:
                         moderated_at = CURRENT_TIMESTAMP,
                         submitted_for_moderation = FALSE
                     WHERE id = %s
-                    RETURNING id, title, moderation_status, moderation_comment
+                    RETURNING id, title, moderation_status, moderation_comment, subscription_expires_at
                 """, (moderation_status, moderation_comment, admin.get('admin_id'), listing_id))
                 
                 result = cur.fetchone()
