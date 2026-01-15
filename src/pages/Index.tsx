@@ -38,9 +38,9 @@ export default function Index() {
     }
   };
 
-  const uniqueCities = ['Все города', ...new Set(allListings.map(l => l.city))];
+  const uniqueCities = ['Все города', ...new Set(Array.isArray(allListings) ? allListings.map(l => l.city) : [])];
 
-  const filteredListings = allListings
+  const filteredListings = (Array.isArray(allListings) ? allListings : [])
     .filter(l => !l.is_archived)
     .filter(l => selectedCity === 'Все города' || l.city === selectedCity)
     .filter(l => selectedType === 'all' || l.type === selectedType)
