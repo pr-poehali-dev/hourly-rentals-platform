@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Get TOP-20 positions for city",
+      "method": "GET",
+      "path": "/?city=Москва",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Missing city parameter",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

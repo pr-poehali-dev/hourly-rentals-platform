@@ -8,7 +8,10 @@ import { api } from '@/lib/api';
 import OwnerDashboardHeader from '@/components/OwnerDashboardHeader';
 import OwnerOverviewTab from '@/components/OwnerOverviewTab';
 import OwnerAuctionTab from '@/components/OwnerAuctionTab';
+import OwnerTop20Tab from '@/components/OwnerTop20Tab';
 import OwnerEditListingDialogNew from '@/components/OwnerEditListingDialogNew';
+import { CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface Owner {
   id: number;
@@ -113,6 +116,7 @@ export default function OwnerDashboard() {
   const [isTopupLoading, setIsTopupLoading] = useState(false);
   const [timeUntilReset, setTimeUntilReset] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'promotion' | 'statistics'>('overview');
+  const [promotionSubTab, setPromotionSubTab] = useState<'auction' | 'top20'>('auction');
   const [editingListing, setEditingListing] = useState<any | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -424,16 +428,59 @@ export default function OwnerDashboard() {
             </TabsContent>
 
             <TabsContent value="promotion">
-              <OwnerAuctionTab
-                listings={listings}
-                selectedListing={selectedListing}
-                auctionInfo={auctionInfo}
-                timeUntilReset={timeUntilReset}
-                isLoading={isLoading}
-                selectedPosition={selectedPosition}
-                onSelectListing={handleListingSelect}
-                onBookPosition={handleBookPosition}
-              />
+              <div className="space-y-6">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex gap-2 mb-4">
+                      <Button
+                        variant={promotionSubTab === 'auction' ? 'default' : 'outline'}
+                        onClick={() => setPromotionSubTab('auction')}
+                        className="flex-1"
+                      >
+                        <Icon name="Gavel" size={18} className="mr-2" />
+                        Аукцион
+                      </Button>
+                      <Button
+                        variant={promotionSubTab === 'top20' ? 'default' : 'outline'}
+                        onClick={() => setPromotionSubTab('top20')}
+                        className="flex-1"
+                      >
+                        <Icon name="Crown" size={18} className="mr-2" />
+                        ТОП-20
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {promotionSubTab === 'auction' ? (
+                  <OwnerAuctionTab
+                    listings={listings}
+                    selectedListing={selectedListing}
+                    auctionInfo={auctionInfo}
+                    timeUntilReset={timeUntilReset}
+                    isLoading={isLoading}
+                    selectedPosition={selectedPosition}
+                    onSelectListing={handleListingSelect}
+                    onBookPosition={handleBookPosition}
+                  />
+                ) : (
+                  <OwnerTop20Tab
+                    listings={listings}
+                    selectedListing={selectedListing}
+                    onSelectListing={handleListingSelect}
+                    token={token!}
+                    ownerId={parseInt(ownerId!)}
+                    onBalanceUpdate={() => {
+                      const ownerData = localStorage.getItem('ownerData');
+                      if (ownerData) {
+                        setOwner(JSON.parse(ownerData));
+                      }
+                      loadOwnerListings();
+                      loadTransactions();
+                    }}
+                  />
+                )}
+              </div>
             </TabsContent>
 
             <TabsContent value="statistics">
