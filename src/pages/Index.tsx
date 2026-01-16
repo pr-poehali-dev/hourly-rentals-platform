@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
@@ -22,6 +22,8 @@ export default function Index() {
   const [allListings, setAllListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadListings();
@@ -72,6 +74,31 @@ export default function Index() {
 
   const handleCardClick = (listing: any) => {
     window.location.href = `/listing/${listing.id}`;
+  };
+
+  const scrollToResults = () => {
+    if (resultsRef.current) {
+      const headerHeight = 100;
+      const elementPosition = resultsRef.current.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleCityChange = (city: string) => {
+    setSelectedCity(city);
+    setTimeout(() => {
+      scrollToResults();
+    }, 200);
+  };
+
+  const handleFilterChange = (filterSetter: (value: any) => void, value: any) => {
+    filterSetter(value);
+    setTimeout(scrollToResults, 150);
   };
 
   return (
@@ -186,18 +213,18 @@ export default function Index() {
               searchCity={searchCity}
               setSearchCity={setSearchCity}
               selectedType={selectedType}
-              setSelectedType={setSelectedType}
+              setSelectedType={(value) => handleFilterChange(setSelectedType, value)}
               selectedCity={selectedCity}
-              setSelectedCity={setSelectedCity}
+              setSelectedCity={handleCityChange}
               cities={uniqueCities}
               showMap={showMap}
               setShowMap={setShowMap}
               hasParking={hasParking}
-              setHasParking={setHasParking}
+              setHasParking={(value) => handleFilterChange(setHasParking, value)}
               minHours={minHours}
-              setMinHours={setMinHours}
+              setMinHours={(value) => handleFilterChange(setMinHours, value)}
               selectedFeatures={selectedFeatures}
-              setSelectedFeatures={setSelectedFeatures}
+              setSelectedFeatures={(value) => handleFilterChange(setSelectedFeatures, value)}
             />
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
@@ -205,21 +232,38 @@ export default function Index() {
               </div>
             ) : (
               <>
+                <div ref={resultsRef} className="scroll-mt-24"></div>
                 {(selectedCity !== 'Все города' || selectedType !== 'all' || hasParking || minHours !== null || selectedFeatures.length > 0 || searchCity) && (
-                  <div className="mb-6 flex items-center justify-between bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-purple-100">
-                    <div className="flex items-center gap-3">
-                      <Icon name="Filter" size={20} className="text-purple-600" />
-                      <span className="text-sm font-medium">
-                        Найдено объектов: <span className="text-lg font-bold text-purple-600">{filteredListings.length}</span>
-                      </span>
-                      {selectedFeatures.length > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                          • С удобствами: {selectedFeatures.join(', ')}
-                        </span>
+                  <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200 shadow-sm animate-fade-in">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center">
+                          <Icon name="Search" size={20} className="text-white" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-muted-foreground">Результаты поиска</div>
+                          <div className="text-2xl font-bold text-purple-600">{filteredListings.length} {filteredListings.length === 1 ? 'объект' : filteredListings.length < 5 ? 'объекта' : 'объектов'}</div>
+                        </div>
+                      </div>
+                      {(selectedCity !== 'Все города' || selectedFeatures.length > 0) && (
+                        <div className="flex flex-wrap gap-2 ml-13">
+                          {selectedCity !== 'Все города' && (
+                            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full flex items-center gap-1">
+                              <Icon name="MapPin" size={12} />
+                              {selectedCity}
+                            </span>
+                          )}
+                          {selectedFeatures.map(feature => (
+                            <span key={feature} className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full flex items-center gap-1">
+                              <Icon name="Star" size={12} />
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                     <Button 
-                      variant="ghost" 
+                      variant="outline"
                       size="sm"
                       onClick={() => {
                         setSelectedCity('Все города');
@@ -229,10 +273,11 @@ export default function Index() {
                         setSelectedFeatures([]);
                         setSearchCity('');
                       }}
-                      className="text-purple-600 hover:text-purple-800"
+                      className="border-purple-300 text-purple-600 hover:bg-purple-100 hover:text-purple-800 transition-all flex items-center gap-2"
                     >
-                      <Icon name="X" size={16} className="mr-1" />
-                      Сбросить фильтры
+                      <Icon name="RotateCcw" size={16} />
+                      <span className="hidden md:inline">Сбросить фильтры</span>
+                      <span className="md:hidden">Сбросить</span>
                     </Button>
                   </div>
                 )}
