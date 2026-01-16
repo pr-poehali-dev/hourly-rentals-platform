@@ -117,7 +117,8 @@ export default function OwnerEditListingDialogNew({
         image_urls: imageUrls,
       });
 
-      await fetch('https://functions.poehali.dev/6e7f9cac-b774-46cc-bb47-154f93adb2c9', {
+      console.log('[DEBUG] Saving room categories:', { count: roomCategories.length, data: roomCategories });
+      const roomCatResponse = await fetch('https://functions.poehali.dev/6e7f9cac-b774-46cc-bb47-154f93adb2c9', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -128,6 +129,12 @@ export default function OwnerEditListingDialogNew({
           categories: roomCategories,
         }),
       });
+      const responseText = await roomCatResponse.text();
+      console.log('[DEBUG] Room categories save response:', { status: roomCatResponse.status, body: responseText });
+      
+      if (!roomCatResponse.ok) {
+        console.error('[ERROR] Failed to save room categories:', responseText);
+      }
 
       toast({
         title: 'Изменения отправлены на модерацию',
