@@ -3,6 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface Owner {
   id: number;
@@ -13,6 +20,16 @@ interface Owner {
   phone?: string;
 }
 
+interface Transaction {
+  id: number;
+  amount: number;
+  type: string;
+  description: string;
+  balance_after: number;
+  created_at: string;
+  related_bid_id: number | null;
+}
+
 interface OwnerDashboardHeaderProps {
   owner: Owner;
   onLogout: () => void;
@@ -20,6 +37,7 @@ interface OwnerDashboardHeaderProps {
   isTopupLoading: boolean;
   showCashbackAnimation: boolean;
   cashbackAmount: number;
+  transactions: Transaction[];
 }
 
 export default function OwnerDashboardHeader({
@@ -29,8 +47,10 @@ export default function OwnerDashboardHeader({
   isTopupLoading,
   showCashbackAnimation,
   cashbackAmount,
+  transactions,
 }: OwnerDashboardHeaderProps) {
   const [topupAmount, setTopupAmount] = useState('');
+  const [showTransactionsDialog, setShowTransactionsDialog] = useState(false);
   const totalBalance = owner.balance + owner.bonus_balance;
 
   const handleTopupClick = async () => {
@@ -73,6 +93,15 @@ export default function OwnerDashboardHeader({
                 </div>
                 <div className="border-l border-purple-200 pl-6">
                   <div className="flex flex-col gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowTransactionsDialog(true)}
+                      className="w-full mb-1 border-purple-300 hover:bg-purple-50"
+                    >
+                      <Icon name="Receipt" size={14} className="mr-1" />
+                      История операций
+                    </Button>
                     <div className="flex gap-2">
                       <Input
                         type="number"
@@ -121,6 +150,74 @@ export default function OwnerDashboardHeader({
           </div>
         </div>
       </div>
+
+      <Dialog open={showTransactionsDialog} onOpenChange={setShowTransactionsDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>История операций</DialogTitle>
+            <DialogDescription>Последние 50 транзакций</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 overflow-y-auto flex-1 pr-2">
+            {transactions.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Icon name="Receipt" size={48} className="mx-auto mb-2 opacity-20" />
+                <p>Операций пока нет</p>
+              </div>
+            ) : (
+              transactions.map((tx) => (
+                <div
+                  key={tx.id}
+                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      tx.type === 'deposit' ? 'bg-green-100' :
+                      tx.type === 'bonus' ? 'bg-purple-100' :
+                      'bg-red-100'
+                    }`}>
+                      <Icon
+                        name={
+                          tx.type === 'deposit' ? 'ArrowDownToLine' :
+                          tx.type === 'bonus' ? 'Gift' :
+                          'ArrowUpFromLine'
+                        }
+                        size={18}
+                        className={
+                          tx.type === 'deposit' ? 'text-green-600' :
+                          tx.type === 'bonus' ? 'text-purple-600' :
+                          'text-red-600'
+                        }
+                      />
+                    </div>
+                    <div>
+                      <div className="font-medium">{tx.description}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(tx.created_at).toLocaleString('ru-RU', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-lg font-bold ${
+                      tx.type === 'deposit' || tx.type === 'bonus' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {tx.type === 'deposit' || tx.type === 'bonus' ? '+' : '-'}{Math.abs(tx.amount)} ₽
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Баланс: {tx.balance_after} ₽
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

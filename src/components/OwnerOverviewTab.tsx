@@ -38,7 +38,7 @@ interface Transaction {
 interface OwnerOverviewTabProps {
   listings: Listing[];
   subscriptionInfo: Map<number, SubscriptionInfo>;
-  transactions: Transaction[];
+  transactions?: Transaction[];
   isLoading: boolean;
   onExtendSubscription: (listingId: number, days: number) => Promise<void>;
   onEditListing?: (listing: any) => void;
@@ -66,61 +66,6 @@ export default function OwnerOverviewTab({
           />
         ))}
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>История операций</CardTitle>
-          <CardDescription>Последние транзакции</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 max-h-[400px] overflow-y-auto">
-            {transactions.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Icon name="Receipt" size={48} className="mx-auto mb-2 opacity-20" />
-                <p>Операций пока нет</p>
-              </div>
-            ) : (
-              transactions.slice(0, 10).map((tx) => (
-                <div
-                  key={tx.id}
-                  className="flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon
-                      name={
-                        tx.type === 'deposit' ? 'ArrowDownToLine' :
-                        tx.type === 'subscription' ? 'CalendarCheck' :
-                        tx.type === 'bid_payment' ? 'TrendingUp' :
-                        tx.type === 'bonus' ? 'Gift' :
-                        'Circle'
-                      }
-                      size={18}
-                      className={
-                        tx.type === 'deposit' || tx.type === 'bonus' ? 'text-green-600' :
-                        'text-orange-600'
-                      }
-                    />
-                    <div>
-                      <p className="text-sm font-medium">{tx.description}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(tx.created_at).toLocaleString('ru-RU')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`font-semibold ${tx.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {tx.amount >= 0 ? '+' : ''}{tx.amount} ₽
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Баланс: {tx.balance_after} ₽
-                    </p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

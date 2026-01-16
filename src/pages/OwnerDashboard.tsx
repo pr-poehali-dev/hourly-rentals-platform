@@ -394,6 +394,7 @@ export default function OwnerDashboard() {
         isTopupLoading={isTopupLoading}
         showCashbackAnimation={showCashbackAnimation}
         cashbackAmount={cashbackAmount}
+        transactions={transactions}
       />
 
       <main className="container mx-auto px-4 py-8">
@@ -415,7 +416,6 @@ export default function OwnerDashboard() {
               <OwnerOverviewTab
                 listings={listings}
                 subscriptionInfo={subscriptionInfo}
-                transactions={transactions}
                 isLoading={isLoading}
                 onExtendSubscription={handleExtendSubscription}
                 onEditListing={handleEditListing}
@@ -428,7 +428,6 @@ export default function OwnerDashboard() {
                 selectedListing={selectedListing}
                 auctionInfo={auctionInfo}
                 stats={stats}
-                transactions={transactions}
                 timeUntilReset={timeUntilReset}
                 isLoading={isLoading}
                 selectedPosition={selectedPosition}

@@ -69,7 +69,7 @@ interface OwnerAuctionTabProps {
   selectedListing: Listing | null;
   auctionInfo: AuctionInfo | null;
   stats: Stats | null;
-  transactions: Transaction[];
+  transactions?: Transaction[];
   timeUntilReset: string;
   isLoading: boolean;
   selectedPosition: number | null;
@@ -129,74 +129,6 @@ export default function OwnerAuctionTab({
       {selectedListing ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>История операций</CardTitle>
-                <CardDescription>Последние 50 транзакций</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {transactions.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Icon name="Receipt" size={48} className="mx-auto mb-2 opacity-20" />
-                      <p>Операций пока нет</p>
-                    </div>
-                  ) : (
-                    transactions.map((tx) => (
-                      <div
-                        key={tx.id}
-                        className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            tx.type === 'deposit' ? 'bg-green-100' :
-                            tx.type === 'bonus' ? 'bg-purple-100' :
-                            'bg-red-100'
-                          }`}>
-                            <Icon
-                              name={
-                                tx.type === 'deposit' ? 'ArrowDownToLine' :
-                                tx.type === 'bonus' ? 'Gift' :
-                                'ArrowUpFromLine'
-                              }
-                              size={18}
-                              className={
-                                tx.type === 'deposit' ? 'text-green-600' :
-                                tx.type === 'bonus' ? 'text-purple-600' :
-                                'text-red-600'
-                              }
-                            />
-                          </div>
-                          <div>
-                            <div className="font-medium">{tx.description}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {new Date(tx.created_at).toLocaleString('ru-RU', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`text-lg font-bold ${
-                            tx.type === 'deposit' || tx.type === 'bonus' ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {tx.type === 'deposit' || tx.type === 'bonus' ? '+' : '-'}{Math.abs(tx.amount)} ₽
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Баланс: {tx.balance_after} ₽
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Мои объекты</CardTitle>
