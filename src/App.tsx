@@ -15,7 +15,6 @@ import OwnerForgotPassword from "./pages/OwnerForgotPassword";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import CompanyInfo from "./pages/CompanyInfo";
 import Offer from "./pages/Offer";
-import Top20 from "./pages/Top20";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,7 +35,6 @@ const App = () => (
           <Route path="/owner/dashboard" element={<OwnerDashboard />} />
           <Route path="/company-info" element={<CompanyInfo />} />
           <Route path="/offer" element={<Offer />} />
-          <Route path="/top20" element={<Top20 />} />
           <Route path="/listing/:listingId" element={<ListingPage />} />
           <Route path="/listing/:listingId/room/:roomIndex" element={<RoomDetails />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
