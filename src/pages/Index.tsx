@@ -119,7 +119,36 @@ export default function Index() {
                 <p className="text-xs md:text-sm text-muted-foreground">Почасовая аренда по всей России</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <nav className="hidden md:flex items-center gap-3">
+              <Button 
+                variant={activeTab === 'catalog' ? 'default' : 'ghost'} 
+                onClick={() => setActiveTab('catalog')}
+                className={activeTab === 'catalog' ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white' : 'text-purple-700 hover:bg-purple-50 hover:text-purple-800'}
+              >
+                Каталог
+              </Button>
+              <Button 
+                variant={activeTab === 'about' ? 'default' : 'ghost'} 
+                onClick={() => setActiveTab('about')}
+                className={activeTab === 'about' ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white' : 'text-purple-700 hover:bg-purple-50 hover:text-purple-800'}
+              >
+                О платформе
+              </Button>
+              <Button 
+                variant={activeTab === 'partners' ? 'default' : 'ghost'} 
+                onClick={() => setActiveTab('partners')}
+                className={activeTab === 'partners' ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white' : 'text-purple-700 hover:bg-purple-50 hover:text-purple-800'}
+              >
+                Партнерам
+              </Button>
+              <Button 
+                variant={activeTab === 'support' ? 'default' : 'ghost'} 
+                onClick={() => setActiveTab('support')}
+                className={activeTab === 'support' ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white' : 'text-purple-700 hover:bg-purple-50 hover:text-purple-800'}
+              >
+                Поддержка
+              </Button>
+              
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline" className="border-purple-300 hover:bg-purple-50">
@@ -129,7 +158,7 @@ export default function Index() {
                     </div>
                   </Button>
                 </SheetTrigger>
-                  <SheetContent className="w-[400px] sm:w-[540px]">
+                <SheetContent className="w-[400px] sm:w-[540px]">
                     <SheetHeader>
                       <SheetTitle>Личный кабинет для владельцев</SheetTitle>
                     </SheetHeader>
@@ -168,37 +197,6 @@ export default function Index() {
                     </div>
                   </SheetContent>
                 </Sheet>
-            </div>
-
-            <nav className="hidden md:flex items-center gap-3">
-              <Button 
-                variant={activeTab === 'catalog' ? 'default' : 'ghost'} 
-                onClick={() => setActiveTab('catalog')}
-                className={activeTab === 'catalog' ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white' : 'text-purple-700 hover:bg-purple-50 hover:text-purple-800'}
-              >
-                Каталог
-              </Button>
-              <Button 
-                variant={activeTab === 'about' ? 'default' : 'ghost'} 
-                onClick={() => setActiveTab('about')}
-                className={activeTab === 'about' ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white' : 'text-purple-700 hover:bg-purple-50 hover:text-purple-800'}
-              >
-                О платформе
-              </Button>
-              <Button 
-                variant={activeTab === 'partners' ? 'default' : 'ghost'} 
-                onClick={() => setActiveTab('partners')}
-                className={activeTab === 'partners' ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white' : 'text-purple-700 hover:bg-purple-50 hover:text-purple-800'}
-              >
-                Партнерам
-              </Button>
-              <Button 
-                variant={activeTab === 'support' ? 'default' : 'ghost'} 
-                onClick={() => setActiveTab('support')}
-                className={activeTab === 'support' ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white' : 'text-purple-700 hover:bg-purple-50 hover:text-purple-800'}
-              >
-                Поддержка
-              </Button>
             </nav>
 
             <Button variant="ghost" size="icon" className="md:hidden">
