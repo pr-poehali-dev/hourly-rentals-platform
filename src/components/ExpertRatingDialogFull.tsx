@@ -17,6 +17,7 @@ interface Room {
   id?: number;
   type: string;
   price: number;
+  images?: string[];
   expert_photo_rating?: number;
   expert_photo_feedback?: string;
   expert_fullness_rating?: number;
@@ -27,6 +28,9 @@ interface ExpertRatingDialogFullProps {
   listing: {
     id: number;
     title: string;
+    image_url?: string;
+    district?: string;
+    features?: string[];
     expert_photo_rating?: number;
     expert_photo_feedback?: string;
     expert_fullness_rating?: number;
@@ -42,6 +46,12 @@ interface ExpertRatingDialogFullProps {
 interface RatingState {
   rating: number;
   feedback: string;
+}
+
+interface SiteRatingState {
+  mainPhoto: RatingState;
+  description: RatingState;
+  fullness: RatingState;
 }
 
 const StarRating = ({ 
@@ -91,21 +101,30 @@ export default function ExpertRatingDialogFull({
   onSuccess,
   token,
 }: ExpertRatingDialogFullProps) {
-  const [photoRating, setPhotoRating] = useState<RatingState>({ rating: 0, feedback: '' });
-  const [fullnessRating, setFullnessRating] = useState<RatingState>({ rating: 0, feedback: '' });
+  const [siteRating, setSiteRating] = useState<SiteRatingState>({
+    mainPhoto: { rating: 0, feedback: '' },
+    description: { rating: 0, feedback: '' },
+    fullness: { rating: 0, feedback: '' }
+  });
   const [roomRatings, setRoomRatings] = useState<Map<number, { photo: RatingState; fullness: RatingState }>>(new Map());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     if (listing) {
-      setPhotoRating({
-        rating: listing.expert_photo_rating || 0,
-        feedback: listing.expert_photo_feedback || '',
-      });
-      setFullnessRating({
-        rating: listing.expert_fullness_rating || 0,
-        feedback: listing.expert_fullness_feedback || '',
+      setSiteRating({
+        mainPhoto: {
+          rating: listing.expert_photo_rating || 0,
+          feedback: listing.expert_photo_feedback || '',
+        },
+        description: {
+          rating: 0,
+          feedback: '',
+        },
+        fullness: {
+          rating: listing.expert_fullness_rating || 0,
+          feedback: listing.expert_fullness_feedback || '',
+        }
       });
 
       const newRoomRatings = new Map();
@@ -128,11 +147,18 @@ export default function ExpertRatingDialogFull({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      const avgSiteRating = Math.round((siteRating.mainPhoto.rating + siteRating.description.rating + siteRating.fullness.rating) / 3);
+      const siteFeedback = [
+        siteRating.mainPhoto.feedback && `Главное фото: ${siteRating.mainPhoto.feedback}`,
+        siteRating.description.feedback && `Описание: ${siteRating.description.feedback}`,
+        siteRating.fullness.feedback && `Наполняемость: ${siteRating.fullness.feedback}`
+      ].filter(Boolean).join('\n\n');
+      
       await api.updateListingExpertRatings(token, listing!.id, {
-        expert_photo_rating: photoRating.rating || null,
-        expert_photo_feedback: photoRating.feedback.trim() || null,
-        expert_fullness_rating: fullnessRating.rating || null,
-        expert_fullness_feedback: fullnessRating.feedback.trim() || null,
+        expert_photo_rating: avgSiteRating || null,
+        expert_photo_feedback: siteFeedback.trim() || null,
+        expert_fullness_rating: avgSiteRating || null,
+        expert_fullness_feedback: siteFeedback.trim() || null,
         rooms: listing!.rooms?.map((room, index) => {
           const ratings = roomRatings.get(index);
           return {
@@ -175,11 +201,11 @@ export default function ExpertRatingDialogFull({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="listing" className="w-full">
+        <Tabs defaultValue="rooms" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="listing">
-              <Icon name="Building" size={16} className="mr-2" />
-              Основной объект
+            <TabsTrigger value="site">
+              <Icon name="Globe" size={16} className="mr-2" />
+              Оценка выставленного объекта на сайте
             </TabsTrigger>
             <TabsTrigger value="rooms">
               <Icon name="Bed" size={16} className="mr-2" />
@@ -187,29 +213,35 @@ export default function ExpertRatingDialogFull({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="listing" className="space-y-6 mt-4">
+          <TabsContent value="site" className="space-y-4 mt-4">
+            {listing.image_url && (
+              <div className="mb-4">
+                <img src={listing.image_url} alt={listing.title} className="w-full h-48 object-cover rounded-lg" />
+              </div>
+            )}
+            
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Icon name="Camera" size={20} className="text-purple-600" />
-                  Оценка фотографий объекта
+                  Главное фото
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <label className="text-sm font-medium mb-3 block">Оценка (1-5 звёзд)</label>
                   <StarRating
-                    rating={photoRating.rating}
-                    onRatingChange={(rating) => setPhotoRating({ ...photoRating, rating })}
+                    rating={siteRating.mainPhoto.rating}
+                    onRatingChange={(rating) => setSiteRating({...siteRating, mainPhoto: {...siteRating.mainPhoto, rating}})}
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-2 block">Обратная связь</label>
                   <Textarea
-                    value={photoRating.feedback}
-                    onChange={(e) => setPhotoRating({ ...photoRating, feedback: e.target.value })}
-                    placeholder="Ваши рекомендации по улучшению фотографий..."
-                    className="min-h-[100px]"
+                    value={siteRating.mainPhoto.feedback}
+                    onChange={(e) => setSiteRating({...siteRating, mainPhoto: {...siteRating.mainPhoto, feedback: e.target.value}})}
+                    placeholder="Рекомендации по главному фото..."
+                    className="min-h-[80px]"
                     maxLength={1000}
                   />
                 </div>
@@ -219,25 +251,53 @@ export default function ExpertRatingDialogFull({
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Icon name="ListChecks" size={20} className="text-blue-600" />
-                  Оценка наполняемости объекта
+                  <Icon name="FileText" size={20} className="text-blue-600" />
+                  Описание объекта
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <label className="text-sm font-medium mb-3 block">Оценка (1-5 звёзд)</label>
                   <StarRating
-                    rating={fullnessRating.rating}
-                    onRatingChange={(rating) => setFullnessRating({ ...fullnessRating, rating })}
+                    rating={siteRating.description.rating}
+                    onRatingChange={(rating) => setSiteRating({...siteRating, description: {...siteRating.description, rating}})}
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-2 block">Обратная связь</label>
                   <Textarea
-                    value={fullnessRating.feedback}
-                    onChange={(e) => setFullnessRating({ ...fullnessRating, feedback: e.target.value })}
-                    placeholder="Ваши рекомендации по улучшению информации об объекте..."
-                    className="min-h-[100px]"
+                    value={siteRating.description.feedback}
+                    onChange={(e) => setSiteRating({...siteRating, description: {...siteRating.description, feedback: e.target.value}})}
+                    placeholder="Рекомендации по описанию объекта..."
+                    className="min-h-[80px]"
+                    maxLength={1000}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Icon name="ListChecks" size={20} className="text-green-600" />
+                  Наполняемость объекта
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-3 block">Оценка (1-5 звёзд)</label>
+                  <StarRating
+                    rating={siteRating.fullness.rating}
+                    onRatingChange={(rating) => setSiteRating({...siteRating, fullness: {...siteRating.fullness, rating}})}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Обратная связь</label>
+                  <Textarea
+                    value={siteRating.fullness.feedback}
+                    onChange={(e) => setSiteRating({...siteRating, fullness: {...siteRating.fullness, feedback: e.target.value}})}
+                    placeholder="Рекомендации по наполняемости объекта..."
+                    className="min-h-[80px]"
                     maxLength={1000}
                   />
                 </div>
@@ -256,6 +316,14 @@ export default function ExpertRatingDialogFull({
                       <CardTitle className="text-lg">{room.type} - {room.price} ₽/час</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                      {room.images && room.images.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2 mb-4">
+                          {room.images.slice(0, 6).map((img, imgIdx) => (
+                            <img key={imgIdx} src={img} alt={`${room.type} ${imgIdx + 1}`} className="w-full h-24 object-cover rounded" />
+                          ))}
+                        </div>
+                      )}
+                      
                       <div className="space-y-4">
                         <h4 className="font-semibold flex items-center gap-2">
                           <Icon name="Camera" size={18} className="text-purple-600" />

@@ -91,7 +91,7 @@ def handler(event: dict, context) -> dict:
             placeholders = ','.join(['%s'] * len(listing_ids))
             cur.execute(
                 f"""SELECT id, listing_id, type, price, description, square_meters, features, 
-                           min_hours, payment_methods, cancellation_policy,
+                           min_hours, payment_methods, cancellation_policy, images,
                            expert_photo_rating, expert_photo_feedback,
                            expert_fullness_rating, expert_fullness_feedback
                     FROM t_p39732784_hourly_rentals_platf.rooms 
