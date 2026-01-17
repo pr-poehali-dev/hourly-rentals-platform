@@ -8,6 +8,7 @@ import { api } from '@/lib/api';
 import OwnerDashboardHeader from '@/components/OwnerDashboardHeader';
 import OwnerOverviewTab from '@/components/OwnerOverviewTab';
 import OwnerAuctionTab from '@/components/OwnerAuctionTab';
+import OwnerExpertTab from '@/components/OwnerExpertTab';
 import OwnerEditListingDialogNew from '@/components/OwnerEditListingDialogNew';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -114,7 +115,7 @@ export default function OwnerDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTopupLoading, setIsTopupLoading] = useState(false);
   const [timeUntilReset, setTimeUntilReset] = useState('');
-  const [activeTab, setActiveTab] = useState<'overview' | 'promotion' | 'statistics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'promotion' | 'statistics' | 'expert'>('overview');
   const [editingListing, setEditingListing] = useState<any | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -408,11 +409,12 @@ export default function OwnerDashboard() {
             </CardHeader>
           </Card>
         ) : (
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'overview' | 'promotion' | 'statistics')} className="space-y-6">
-            <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'overview' | 'promotion' | 'statistics' | 'expert')} className="space-y-6">
+            <TabsList className="grid w-full max-w-3xl grid-cols-4">
               <TabsTrigger value="overview">Мои объекты</TabsTrigger>
               <TabsTrigger value="promotion">Продвижение</TabsTrigger>
               <TabsTrigger value="statistics">Статистика</TabsTrigger>
+              <TabsTrigger value="expert">Эксперт</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -509,6 +511,10 @@ export default function OwnerDashboard() {
                   </Card>
                 )}
               </div>
+            </TabsContent>
+
+            <TabsContent value="expert">
+              <OwnerExpertTab listings={listings} />
             </TabsContent>
           </Tabs>
         )}
