@@ -120,7 +120,12 @@ export default function OwnerDashboard() {
             </TabsContent>
 
             <TabsContent value="expert">
-              <OwnerExpertTab listings={listings} />
+              <OwnerExpertTab 
+                listings={listings} 
+                token={token!}
+                ownerId={owner.id}
+                onUpdate={loadStats}
+              />
             </TabsContent>
           </Tabs>
         )}

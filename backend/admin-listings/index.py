@@ -65,9 +65,9 @@ def handler(event: dict, context) -> dict:
                     FROM t_p39732784_hourly_rentals_platf.listings l
                     LEFT JOIN t_p39732784_hourly_rentals_platf.admins a ON l.created_by_employee_id = a.id
                     LEFT JOIN t_p39732784_hourly_rentals_platf.owners o ON l.owner_id = o.id
-                    WHERE l.moderation_status = 'pending'
+                    WHERE l.moderation_status = %s
                     ORDER BY l.updated_at DESC
-                """)
+                """, (moderation_filter,))
             elif show_archived:
                 cur.execute("SELECT * FROM t_p39732784_hourly_rentals_platf.listings ORDER BY created_at DESC")
             else:
@@ -421,6 +421,39 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({
                         'success': True,
                         'message': 'Объект отправлен на модерацию',
+                        'listing': dict(result)
+                    }, default=str),
+                    'isBase64Encoded': False
+                }
+            
+            elif action == 'submit_for_recheck':
+                listing_id = event.get('queryStringParameters', {}).get('id')
+                
+                if not listing_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Требуется ID объекта'}),
+                        'isBase64Encoded': False
+                    }
+                
+                cur.execute("""
+                    UPDATE t_p39732784_hourly_rentals_platf.listings
+                    SET moderation_status = 'awaiting_recheck',
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                    RETURNING id, title, moderation_status
+                """, (listing_id,))
+                
+                result = cur.fetchone()
+                conn.commit()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'message': 'Объект отправлен на повторную проверку',
                         'listing': dict(result)
                     }, default=str),
                     'isBase64Encoded': False

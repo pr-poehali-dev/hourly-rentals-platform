@@ -69,6 +69,18 @@ export const api = {
     return response.json();
   },
 
+  // Получение объектов на модерации
+  getPendingModerationListings: async (token: string, moderationStatus: 'pending' | 'awaiting_recheck' = 'pending') => {
+    const response = await fetch(`${API_URLS.adminListings}?moderation_status=${moderationStatus}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+
   // Создание объекта
   createListing: async (token: string, data: any) => {
     const response = await fetch(API_URLS.adminListings, {
@@ -121,6 +133,23 @@ export const api = {
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+
+  // Отправка на повторную проверку
+  submitListingForRecheck: async (token: string, id: number) => {
+    const response = await fetch(`${API_URLS.adminListings}?id=${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action: 'submit_for_recheck' }),
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Network error' }));

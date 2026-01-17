@@ -19,7 +19,7 @@ import ModerationDialog from '@/components/admin/ModerationDialog';
 import ExpertRatingDialogFull from '@/components/ExpertRatingDialogFull';
 
 export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState<'listings' | 'moderation' | 'owners' | 'employees' | 'bonuses' | 'all-actions'>('listings');
+  const [activeTab, setActiveTab] = useState<'listings' | 'moderation' | 'recheck' | 'owners' | 'employees' | 'bonuses' | 'all-actions'>('listings');
   const [listings, setListings] = useState<any[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [showOnlyUnrated, setShowOnlyUnrated] = useState(false);
@@ -293,6 +293,8 @@ export default function AdminPanel() {
           />
         ) : activeTab === 'moderation' && hasPermission('listings') ? (
           <AdminModerationTab token={token!} adminInfo={adminInfo} />
+        ) : activeTab === 'recheck' && hasPermission('listings') ? (
+          <AdminModerationTab token={token!} adminInfo={adminInfo} moderationFilter="awaiting_recheck" />
         ) : activeTab === 'owners' && hasPermission('owners') ? (
           <AdminOwnersTab token={token!} />
         ) : activeTab === 'employees' && adminInfo?.role === 'superadmin' ? (

@@ -1,11 +1,18 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
+import ImageLightbox from '@/components/ImageLightbox';
 
 interface Room {
   id: number;
   type: string;
   price: number;
+  images?: string[];
+  description?: string;
   expert_photo_rating?: number;
   expert_photo_feedback?: string;
   expert_fullness_rating?: number;
@@ -16,17 +23,22 @@ interface Listing {
   id: number;
   title: string;
   city: string;
+  district?: string;
   image_url: string;
   type: string;
   expert_photo_rating?: number;
   expert_photo_feedback?: string;
   expert_fullness_rating?: number;
   expert_fullness_feedback?: string;
+  moderation_status?: string;
   rooms?: Room[];
 }
 
 interface OwnerExpertTabProps {
   listings: Listing[];
+  token: string;
+  ownerId: number;
+  onUpdate: () => void;
 }
 
 const renderStars = (score: number) => {
@@ -71,7 +83,11 @@ const RatingCard = ({
   title, 
   subtitle, 
   rating, 
-  feedback 
+  feedback,
+  image,
+  text,
+  images,
+  onImageClick
 }: { 
   icon: string; 
   iconColor: string; 
@@ -80,6 +96,10 @@ const RatingCard = ({
   subtitle?: string;
   rating: number; 
   feedback: string;
+  image?: string;
+  text?: string;
+  images?: string[];
+  onImageClick?: (imgs: string[], idx: number) => void;
 }) => (
   <div className="bg-white border rounded-lg p-6 hover:border-purple-300 transition-colors">
     <div className="flex items-start justify-between mb-4">
@@ -96,6 +116,41 @@ const RatingCard = ({
         {rating} из 5
       </Badge>
     </div>
+
+    {(image || images || text) && (
+      <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
+        <p className="text-sm font-medium mb-3 flex items-center gap-2">
+          <Icon name="Eye" size={16} className="text-purple-600" />
+          Оцениваемый контент:
+        </p>
+        {image && (
+          <img 
+            src={image} 
+            alt={title} 
+            className="w-full h-48 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity" 
+            onClick={() => onImageClick?.([image], 0)}
+          />
+        )}
+        {images && images.length > 0 && (
+          <div className="grid grid-cols-3 gap-2">
+            {images.slice(0, 6).map((img, idx) => (
+              <img 
+                key={idx} 
+                src={img} 
+                alt={`${title} ${idx + 1}`} 
+                className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => onImageClick?.(images, idx)}
+              />
+            ))}
+          </div>
+        )}
+        {text && (
+          <div className="text-sm text-gray-700 whitespace-pre-line">
+            {text}
+          </div>
+        )}
+      </div>
+    )}
     
     <div className="mb-4 flex items-center gap-2">
       {renderStars(rating)}
@@ -116,15 +171,56 @@ const RatingCard = ({
             Обратная связь эксперта:
           </h4>
           <p className="text-sm whitespace-pre-line">{feedback}</p>
+          {rating < 4 && (
+            <p className="text-xs mt-3 text-gray-600 italic">
+              💡 Исправьте указанные замечания и нажмите кнопку "Исправлено" внизу карточки для повторной проверки
+            </p>
+          )}
         </div>
       </div>
     </div>
   </div>
 );
 
-export default function OwnerExpertTab({ listings }: OwnerExpertTabProps) {
+export default function OwnerExpertTab({ listings, token, ownerId, onUpdate }: OwnerExpertTabProps) {
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [submittingRecheck, setSubmittingRecheck] = useState<number | null>(null);
+  const { toast } = useToast();
+
+  const handleImageClick = (images: string[], index: number) => {
+    setLightboxImages(images);
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const handleMarkAsFixed = async (listingId: number, listingTitle: string) => {
+    try {
+      setSubmittingRecheck(listingId);
+      
+      await api.submitListingForRecheck(token, listingId);
+      
+      toast({
+        title: 'Успешно!',
+        description: `Объект "${listingTitle}" отправлен на повторную проверку`,
+      });
+      
+      onUpdate();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось отправить на проверку',
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmittingRecheck(null);
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       <Card className="border-purple-200 bg-gradient-to-br from-purple-50/50 to-pink-50/50">
         <CardHeader>
           <div className="flex items-center gap-3">
@@ -193,10 +289,12 @@ export default function OwnerExpertTab({ listings }: OwnerExpertTabProps) {
                               icon="Camera"
                               iconColor="text-purple-600"
                               iconBg="bg-purple-100"
-                              title="Фотографии объекта"
+                              title="Главное фото"
                               subtitle="Оценка от эксперта"
                               rating={listing.expert_photo_rating!}
                               feedback={listing.expert_photo_feedback!}
+                              image={listing.image_url}
+                              onImageClick={handleImageClick}
                             />
                           )}
 
@@ -205,10 +303,11 @@ export default function OwnerExpertTab({ listings }: OwnerExpertTabProps) {
                               icon="ListChecks"
                               iconColor="text-blue-600"
                               iconBg="bg-blue-100"
-                              title="Наполняемость объекта"
+                              title="Описание объекта"
                               subtitle="Оценка от эксперта"
                               rating={listing.expert_fullness_rating!}
                               feedback={listing.expert_fullness_feedback!}
+                              text={`${listing.title}\n\n${listing.type}, ${listing.city}${listing.district ? `, ${listing.district}` : ''}`}
                             />
                           )}
                         </div>
@@ -245,6 +344,8 @@ export default function OwnerExpertTab({ listings }: OwnerExpertTabProps) {
                                       title="Фотографии номера"
                                       rating={room.expert_photo_rating!}
                                       feedback={room.expert_photo_feedback!}
+                                      images={room.images}
+                                      onImageClick={handleImageClick}
                                     />
                                   )}
 
@@ -253,15 +354,71 @@ export default function OwnerExpertTab({ listings }: OwnerExpertTabProps) {
                                       icon="ListChecks"
                                       iconColor="text-blue-600"
                                       iconBg="bg-blue-100"
-                                      title="Наполняемость номера"
+                                      title="Описание номера"
                                       rating={room.expert_fullness_rating!}
                                       feedback={room.expert_fullness_feedback!}
+                                      text={room.description || `${room.type} - ${room.price} ₽/час`}
                                     />
                                   )}
                                 </CardContent>
                               </Card>
                             );
                           })}
+                        </div>
+                      )}
+
+                      {listing.moderation_status !== 'awaiting_recheck' && (
+                        <div className="pt-6 border-t">
+                          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+                            <CardContent className="pt-6">
+                              <div className="flex items-start gap-4">
+                                <Icon name="CheckCircle" size={24} className="text-green-600 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-lg mb-2">Исправили замечания?</h4>
+                                  <p className="text-sm text-gray-600 mb-4">
+                                    Внесите изменения в объект согласно рекомендациям эксперта, затем нажмите кнопку ниже. 
+                                    Ваш объект будет отправлен на повторную проверку.
+                                  </p>
+                                  <Button 
+                                    onClick={() => handleMarkAsFixed(listing.id, listing.title)}
+                                    disabled={submittingRecheck === listing.id}
+                                    className="bg-green-600 hover:bg-green-700"
+                                  >
+                                    {submittingRecheck === listing.id ? (
+                                      <>
+                                        <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                                        Отправка...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Icon name="Send" size={16} className="mr-2" />
+                                        Исправлено, отправить на проверку
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      )}
+
+                      {listing.moderation_status === 'awaiting_recheck' && (
+                        <div className="pt-6 border-t">
+                          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                            <CardContent className="pt-6">
+                              <div className="flex items-start gap-4">
+                                <Icon name="Clock" size={24} className="text-blue-600 flex-shrink-0" />
+                                <div>
+                                  <h4 className="font-semibold text-lg mb-2">Ожидает повторной проверки</h4>
+                                  <p className="text-sm text-gray-600">
+                                    Объект отправлен эксперту на повторную проверку. 
+                                    Результаты появятся в ближайшее время.
+                                  </p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
                         </div>
                       )}
                     </div>
@@ -272,6 +429,15 @@ export default function OwnerExpertTab({ listings }: OwnerExpertTabProps) {
           })}
         </div>
       )}
-    </div>
+      </div>
+
+      <ImageLightbox
+        images={lightboxImages}
+        currentIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onNavigate={setLightboxIndex}
+      />
+    </>
   );
 }

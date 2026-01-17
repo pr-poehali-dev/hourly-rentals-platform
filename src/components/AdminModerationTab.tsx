@@ -27,9 +27,10 @@ interface Listing {
 interface ModerationTabProps {
   token: string;
   adminInfo?: any;
+  moderationFilter?: 'pending' | 'awaiting_recheck';
 }
 
-export default function AdminModerationTab({ token, adminInfo }: ModerationTabProps) {
+export default function AdminModerationTab({ token, adminInfo, moderationFilter = 'pending' }: ModerationTabProps) {
   const isSuperAdmin = adminInfo?.role === 'superadmin';
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,12 +41,12 @@ export default function AdminModerationTab({ token, adminInfo }: ModerationTabPr
 
   useEffect(() => {
     loadPendingListings();
-  }, []);
+  }, [moderationFilter]);
 
   const loadPendingListings = async () => {
     setIsLoading(true);
     try {
-      const data = await api.getPendingModerationListings(token);
+      const data = await api.getPendingModerationListings(token, moderationFilter);
       setListings(data);
     } catch (error: any) {
       toast({

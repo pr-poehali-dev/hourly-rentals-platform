@@ -4,8 +4,8 @@ import Icon from '@/components/ui/icon';
 interface AdminPanelHeaderProps {
   adminInfo: any;
   hasPermission: (permission: string) => boolean;
-  activeTab: 'listings' | 'moderation' | 'owners' | 'employees' | 'bonuses' | 'all-actions';
-  onTabChange: (tab: 'listings' | 'moderation' | 'owners' | 'employees' | 'bonuses' | 'all-actions') => void;
+  activeTab: 'listings' | 'moderation' | 'recheck' | 'owners' | 'employees' | 'bonuses' | 'all-actions';
+  onTabChange: (tab: 'listings' | 'moderation' | 'recheck' | 'owners' | 'employees' | 'bonuses' | 'all-actions') => void;
   onLogout: () => void;
 }
 
@@ -53,6 +53,14 @@ export default function AdminPanelHeader({ adminInfo, hasPermission, activeTab, 
               >
                 <Icon name="Shield" size={18} className="mr-2" />
                 Модерация
+              </Button>
+              <Button
+                variant={activeTab === 'recheck' ? 'default' : 'ghost'}
+                onClick={() => onTabChange('recheck')}
+                className="rounded-b-none"
+              >
+                <Icon name="RefreshCw" size={18} className="mr-2" />
+                Повторная проверка
               </Button>
             </>
           )}
