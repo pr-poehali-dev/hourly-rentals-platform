@@ -223,14 +223,28 @@ export default function OwnerExpertTab({ listings, token, ownerId, onUpdate }: O
       <div className="space-y-6">
       <Card className="border-purple-200 bg-gradient-to-br from-purple-50/50 to-pink-50/50">
         <CardHeader>
-          <div className="flex items-center gap-3">
-            <Icon name="Award" size={32} className="text-purple-600" />
-            <div>
-              <CardTitle className="text-2xl">Экспертная оценка ваших объектов</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Улучшите свои объекты с помощью рекомендаций от экспертов
-              </p>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <Icon name="Award" size={32} className="text-purple-600" />
+              <div>
+                <CardTitle className="text-2xl">Экспертная оценка ваших объектов</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Улучшите свои объекты с помощью рекомендаций от экспертов
+                </p>
+              </div>
             </div>
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all"
+              onClick={() => window.open('https://t.me/your_expert_channel', '_blank')}
+            >
+              <div className="text-left">
+                <div className="font-bold text-base">Я ПРОДАМ ВСЕ</div>
+                <div className="text-xs opacity-90 -mt-0.5">
+                  используйте советы от ведущего эксперта для ведения успешного бизнеса в почасовой аренде
+                </div>
+              </div>
+            </Button>
           </div>
         </CardHeader>
       </Card>
