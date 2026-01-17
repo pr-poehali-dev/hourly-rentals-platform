@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
+import ImageLightbox from '@/components/ImageLightbox';
 
 interface Room {
   id?: number;
@@ -108,6 +109,9 @@ export default function ExpertRatingDialogFull({
   });
   const [roomRatings, setRoomRatings] = useState<Map<number, { photo: RatingState; fullness: RatingState }>>(new Map());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -216,7 +220,16 @@ export default function ExpertRatingDialogFull({
           <TabsContent value="site" className="space-y-4 mt-4">
             {listing.image_url && (
               <div className="mb-4">
-                <img src={listing.image_url} alt={listing.title} className="w-full h-48 object-cover rounded-lg" />
+                <img 
+                  src={listing.image_url} 
+                  alt={listing.title} 
+                  className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity" 
+                  onClick={() => {
+                    setLightboxImages([listing.image_url || '']);
+                    setLightboxIndex(0);
+                    setLightboxOpen(true);
+                  }}
+                />
               </div>
             )}
             
@@ -319,7 +332,17 @@ export default function ExpertRatingDialogFull({
                       {room.images && room.images.length > 0 && (
                         <div className="grid grid-cols-3 gap-2 mb-4">
                           {room.images.slice(0, 6).map((img, imgIdx) => (
-                            <img key={imgIdx} src={img} alt={`${room.type} ${imgIdx + 1}`} className="w-full h-24 object-cover rounded" />
+                            <img 
+                              key={imgIdx} 
+                              src={img} 
+                              alt={`${room.type} ${imgIdx + 1}`} 
+                              className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity" 
+                              onClick={() => {
+                                setLightboxImages(room.images || []);
+                                setLightboxIndex(imgIdx);
+                                setLightboxOpen(true);
+                              }}
+                            />
                           ))}
                         </div>
                       )}
@@ -435,6 +458,14 @@ export default function ExpertRatingDialogFull({
           </Button>
         </div>
       </DialogContent>
+
+      <ImageLightbox
+        images={lightboxImages}
+        currentIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onNavigate={setLightboxIndex}
+      />
     </Dialog>
   );
 }
