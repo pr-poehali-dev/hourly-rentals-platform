@@ -2,6 +2,7 @@ import json
 import os
 import jwt
 import psycopg2
+import hashlib
 from datetime import datetime, timedelta
 
 # Admin authentication handler
@@ -48,11 +49,14 @@ def handler(event: dict, context) -> dict:
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
         
+        # Хеширование пароля для проверки
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        
         # Проверка администратора (по логину, email или телефону)
         login_escaped = login.replace("'", "''")
-        password_escaped = password.replace("'", "''")
+        password_hash_escaped = password_hash.replace("'", "''")
         cur.execute(
-            f"SELECT id, email, name, role, permissions, is_active FROM t_p39732784_hourly_rentals_platf.admins WHERE (login = '{login_escaped}' OR email = '{login_escaped}' OR phone = '{login_escaped}') AND password_hash = '{password_escaped}' AND is_active = true"
+            f"SELECT id, email, name, role, permissions, is_active FROM t_p39732784_hourly_rentals_platf.admins WHERE (login = '{login_escaped}' OR email = '{login_escaped}') AND password_hash = '{password_hash_escaped}' AND is_active = true"
         )
         admin = cur.fetchone()
         
