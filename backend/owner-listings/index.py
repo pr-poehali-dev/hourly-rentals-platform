@@ -73,6 +73,9 @@ def handler(event: dict, context) -> dict:
                         listing_ids
                     )
                     all_rooms = cur.fetchall()
+                    print(f'[DEBUG] Found {len(all_rooms)} rooms')
+                    if all_rooms:
+                        print(f'[DEBUG] First room sample: {all_rooms[0]}')
                     
                     # Группируем комнаты по listing_id
                     rooms_by_listing = {}
@@ -85,6 +88,7 @@ def handler(event: dict, context) -> dict:
                     # Добавляем комнаты к каждому листингу
                     for listing in listings:
                         listing['rooms'] = rooms_by_listing.get(listing['id'], [])
+                        print(f'[DEBUG] Listing {listing["id"]} has {len(listing["rooms"])} rooms')
             else:
                 # Получить все отели для привязки (только для админа)
                 admin = verify_token(token)

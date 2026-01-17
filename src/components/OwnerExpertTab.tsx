@@ -189,19 +189,6 @@ export default function OwnerExpertTab({ listings, token, ownerId, onUpdate }: O
   const [submittingRecheck, setSubmittingRecheck] = useState<number | null>(null);
   const { toast } = useToast();
 
-  // Debug: проверяем данные
-  console.log('OwnerExpertTab listings:', listings);
-  listings.forEach(listing => {
-    console.log(`Listing ${listing.id} (${listing.title}):`, {
-      image_url: listing.image_url,
-      rooms: listing.rooms?.map(r => ({
-        type: r.type,
-        images: r.images,
-        description: r.description
-      }))
-    });
-  });
-
   const handleImageClick = (images: string[], index: number) => {
     setLightboxImages(images);
     setLightboxIndex(index);
