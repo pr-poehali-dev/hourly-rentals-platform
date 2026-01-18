@@ -47,10 +47,10 @@ export default function ModerationDialog({
                     Одобрено
                   </div>
                 </SelectItem>
-                <SelectItem value="needs_changes">
+                <SelectItem value="rejected">
                   <div className="flex items-center gap-2">
                     <Icon name="AlertCircle" size={16} className="text-red-600" />
-                    Нужны правки
+                    Отклонено
                   </div>
                 </SelectItem>
                 <SelectItem value="pending">
