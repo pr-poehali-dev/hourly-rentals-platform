@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -24,6 +25,17 @@ export default function ModerationDialog({
   onCommentChange,
   onSubmit,
 }: ModerationDialogProps) {
+  const [localComment, setLocalComment] = useState(moderationComment);
+
+  useEffect(() => {
+    setLocalComment(moderationComment);
+  }, [moderationComment, open]);
+
+  const handleCommentChange = (value: string) => {
+    setLocalComment(value);
+    onCommentChange(value);
+  };
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent>
@@ -68,8 +80,8 @@ export default function ModerationDialog({
             <textarea
               className="w-full min-h-[100px] p-3 border rounded-md resize-y"
               placeholder="Укажите, что нужно исправить..."
-              value={moderationComment}
-              onChange={(e) => onCommentChange(e.target.value)}
+              value={localComment}
+              onChange={(e) => handleCommentChange(e.target.value)}
             />
             <p className="text-xs text-muted-foreground mt-1">
               Сотрудник увидит этот комментарий и сможет внести правки
