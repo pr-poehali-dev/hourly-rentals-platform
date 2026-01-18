@@ -472,7 +472,7 @@ def handler(event: dict, context) -> dict:
                         'isBase64Encoded': False
                     }
                 
-                if moderation_status not in ['approved', 'rejected', 'pending']:
+                if moderation_status not in ['approved', 'rejected', 'pending', 'awaiting_recheck']:
                     return {
                         'statusCode': 400,
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
