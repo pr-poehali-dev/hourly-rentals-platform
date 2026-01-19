@@ -37,6 +37,9 @@ export default function AdminModerationTab({ token, adminInfo, moderationFilter 
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [moderationStatus, setModerationStatus] = useState<'approved' | 'rejected' | 'pending'>('pending');
   const [moderationComment, setModerationComment] = useState('');
+  const [subscriptionDays, setSubscriptionDays] = useState<number>(30);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+  const [subscriptionListing, setSubscriptionListing] = useState<Listing | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -189,6 +192,12 @@ export default function AdminModerationTab({ token, adminInfo, moderationFilter 
                       <Icon name="Ruble" size={16} />
                       <span className="font-semibold">{listing.price.toLocaleString()} ₽/час</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <Icon name="Calendar" size={16} />
+                      <Badge variant={listing.subscription_expires_at ? 'default' : 'destructive'}>
+                        {listing.subscription_expires_at ? 'Подписка активна' : 'Нет подписки'}
+                      </Badge>
+                    </div>
                     {listing.created_by_employee_name && (
                       <div className="flex items-center gap-2">
                         <Icon name="User" size={16} />
@@ -235,6 +244,19 @@ export default function AdminModerationTab({ token, adminInfo, moderationFilter 
                       <Icon name="ExternalLink" size={16} className="mr-2" />
                       Посмотреть
                     </Button>
+                    {isSuperAdmin && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSubscriptionListing(listing);
+                          setShowSubscriptionDialog(true);
+                        }}
+                      >
+                        <Icon name="Calendar" size={16} className="mr-2" />
+                        Подписка
+                      </Button>
+                    )}
                     {isSuperAdmin && (
                       <>
                         <Button
@@ -355,6 +377,63 @@ export default function AdminModerationTab({ token, adminInfo, moderationFilter 
               disabled={moderationStatus === 'rejected' && !moderationComment.trim()}
             >
               Сохранить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showSubscriptionDialog} onOpenChange={setShowSubscriptionDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Установить подписку</DialogTitle>
+          </DialogHeader>
+          
+          {subscriptionListing && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2">{subscriptionListing.title}</h4>
+                <p className="text-sm text-muted-foreground">
+                  {subscriptionListing.city}, {subscriptionListing.district}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Количество дней</label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={subscriptionDays}
+                  onChange={(e) => setSubscriptionDays(parseInt(e.target.value) || 30)}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSubscriptionDialog(false)}>
+              Отмена
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!subscriptionListing) return;
+                try {
+                  await api.adminSetSubscription(token, subscriptionListing.id, subscriptionDays);
+                  toast({
+                    title: 'Успешно',
+                    description: `Подписка установлена на ${subscriptionDays} дней`,
+                  });
+                  setShowSubscriptionDialog(false);
+                  loadPendingListings();
+                } catch (error: any) {
+                  toast({
+                    title: 'Ошибка',
+                    description: error.message,
+                    variant: 'destructive',
+                  });
+                }
+              }}
+            >
+              Установить
             </Button>
           </DialogFooter>
         </DialogContent>
