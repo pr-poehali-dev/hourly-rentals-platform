@@ -46,9 +46,12 @@ export default function AdminModerationTab({ token, adminInfo, moderationFilter 
   const loadPendingListings = async () => {
     setIsLoading(true);
     try {
+      console.log('[AdminModerationTab] Loading listings with filter:', moderationFilter);
       const data = await api.getPendingModerationListings(token, moderationFilter);
+      console.log('[AdminModerationTab] Received listings:', data.length);
       setListings(data);
     } catch (error: any) {
+      console.error('[AdminModerationTab] Error loading listings:', error);
       toast({
         title: 'Ошибка',
         description: error.message || 'Не удалось загрузить объекты',
