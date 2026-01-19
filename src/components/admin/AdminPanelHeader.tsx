@@ -64,7 +64,10 @@ export default function AdminPanelHeader({ adminInfo, hasPermission, activeTab, 
               </Button>
               <Button
                 variant={activeTab === 'rejected' ? 'default' : 'ghost'}
-                onClick={() => onTabChange('rejected')}
+                onClick={() => {
+                  console.log('[HEADER] Clicked rejected tab');
+                  onTabChange('rejected');
+                }}
                 className="rounded-b-none"
               >
                 <Icon name="XCircle" size={18} className="mr-2" />
