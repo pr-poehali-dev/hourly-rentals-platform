@@ -119,6 +119,27 @@ export default function AdminPanel() {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    if (!confirm('Вы уверены? Удаление объекта нельзя отменить!')) {
+      return;
+    }
+    
+    try {
+      await api.deleteListing(token!, id);
+      toast({
+        title: 'Успешно',
+        description: 'Объект удалён навсегда',
+      });
+      loadListings();
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось удалить объект',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleEdit = (listing: any) => {
     console.log('=== OPENING EDIT FORM ===');
     console.log('Listing to edit:', listing);
@@ -353,6 +374,7 @@ export default function AdminPanel() {
                       formatSubscriptionStatus={formatSubscriptionStatus}
                       onEdit={handleEdit}
                       onArchive={handleArchive}
+                      onDelete={adminInfo?.role === 'superadmin' ? handleDelete : undefined}
                       onChangePosition={handleChangePosition}
                       onSetSubscription={(listing) => setSubscriptionDialog({ open: true, listing })}
                       onModerate={handleModerate}

@@ -12,6 +12,7 @@ interface AdminListingCardProps {
   formatSubscriptionStatus: (listing: any) => { text: string; variant: 'destructive' | 'default' | 'secondary'; daysLeft: number | null };
   onEdit: (listing: any) => void;
   onArchive: (id: number) => void;
+  onDelete?: (id: number) => void;
   onChangePosition: (listingId: number, newPosition: number) => void;
   onSetSubscription: (listing: any) => void;
   onModerate: (listing: any) => void;
@@ -25,6 +26,7 @@ export default function AdminListingCard({
   formatSubscriptionStatus,
   onEdit,
   onArchive,
+  onDelete,
   onChangePosition,
   onSetSubscription,
   onModerate,
@@ -156,7 +158,7 @@ export default function AdminListingCard({
               >
                 <Icon name="Clock" size={16} />
               </Button>
-              {!listing.is_archived && (
+              {!listing.is_archived ? (
                 <Button
                   variant="outline"
                   size="sm"
@@ -164,7 +166,16 @@ export default function AdminListingCard({
                 >
                   <Icon name="Archive" size={16} />
                 </Button>
-              )}
+              ) : adminInfo?.role === 'superadmin' && onDelete ? (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => onDelete(listing.id)}
+                  title="Удалить навсегда"
+                >
+                  <Icon name="Trash2" size={16} />
+                </Button>
+              ) : null}
             </div>
             
             {listing.submitted_for_moderation && adminInfo?.role === 'superadmin' && (

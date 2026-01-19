@@ -642,9 +642,12 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
         
-        # DELETE - архивация объекта
+        # DELETE - архивация или полное удаление объекта
         elif method == 'DELETE':
-            listing_id = event.get('queryStringParameters', {}).get('id')
+            params = event.get('queryStringParameters', {}) or {}
+            listing_id = params.get('id')
+            permanent = params.get('permanent') == 'true'
+            
             if not listing_id:
                 return {
                     'statusCode': 400,
@@ -653,6 +656,39 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
             
+            # Полное удаление (только для superadmin)
+            if permanent:
+                # Проверка роли
+                cur.execute("SELECT role FROM t_p39732784_hourly_rentals_platf.admins WHERE id = %s", (admin.get('admin_id'),))
+                admin_data = cur.fetchone()
+                
+                if not admin_data or admin_data['role'] != 'superadmin':
+                    return {
+                        'statusCode': 403,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Только суперадминистратор может удалять объекты навсегда'}),
+                        'isBase64Encoded': False
+                    }
+                
+                # Удаляем комнаты
+                cur.execute("DELETE FROM t_p39732784_hourly_rentals_platf.rooms WHERE listing_id = %s", (listing_id,))
+                # Удаляем станции метро
+                cur.execute("DELETE FROM t_p39732784_hourly_rentals_platf.metro_stations WHERE listing_id = %s", (listing_id,))
+                # Удаляем объект
+                cur.execute("DELETE FROM t_p39732784_hourly_rentals_platf.listings WHERE id = %s RETURNING id, title", (listing_id,))
+                deleted_listing = cur.fetchone()
+                conn.commit()
+                cur.close()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'success': True, 'message': 'Объект удалён навсегда', 'listing': dict(deleted_listing)}, default=str),
+                    'isBase64Encoded': False
+                }
+            
+            # Обычная архивация
             cur.execute(
                 "UPDATE t_p39732784_hourly_rentals_platf.listings SET is_archived = true WHERE id = %s RETURNING *",
                 (listing_id,)

@@ -167,6 +167,19 @@ export const api = {
     return response.json();
   },
 
+  // Полное удаление объекта (только для superadmin)
+  deleteListing: async (token: string, id: number) => {
+    const response = await fetch(`${API_URLS.adminListings}?id=${id}&permanent=true`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+
   // Загрузка фото
   uploadPhoto: async (token: string, imageBase64: string, contentType: string) => {
     const response = await fetch(API_URLS.adminUpload, {
