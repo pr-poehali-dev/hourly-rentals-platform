@@ -25,10 +25,31 @@ const FEATURES = [
   'Халаты',
   'Тапочки',
   'Утюг',
-  'Балкон'
+  'Балкон',
+  'Душ',
+  'Ванна',
+  'Джакузи',
+  'Сауна',
+  'Бассейн',
+  'Фитнес-зал',
+  'Ресторан',
+  'Бар',
+  'Завтрак включен',
+  'Круглосуточный ресепшн',
+  'Консьерж',
+  'Трансфер',
+  'Прачечная',
+  'Химчистка',
+  'Room service',
+  'Лифт',
+  'Детская кроватка',
+  'Разрешены животные',
+  'Курение запрещено',
+  'Гипоаллергенные номера'
 ];
 
 export default function ListingBasicInfoStep({ data, onUpdate, onNext, onBack }: ListingBasicInfoStepProps) {
+  const selectedCount = (data.features || []).length;
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -153,7 +174,8 @@ export default function ListingBasicInfoStep({ data, onUpdate, onNext, onBack }:
 
         <div>
           <Label>Удобства объекта (необязательно)</Label>
-          <div className="grid grid-cols-2 gap-3 mt-2">
+          <p className="text-sm text-muted-foreground mb-3">Выберите все подходящие удобства, которые есть в вашем объекте</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2 max-h-[400px] overflow-y-auto p-2 border rounded-lg">
             {FEATURES.map((feature) => (
               <div key={feature} className="flex items-center space-x-2">
                 <Checkbox

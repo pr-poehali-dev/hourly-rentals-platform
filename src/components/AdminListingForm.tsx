@@ -341,6 +341,22 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     'Обеденный стол',
     'Диван',
     'Ароматерапия',
+    'Балкон',
+    'Бассейн',
+    'Фитнес-зал',
+    'Ресторан',
+    'Завтрак включен',
+    'Круглосуточный ресепшн',
+    'Консьерж',
+    'Трансфер',
+    'Прачечная',
+    'Химчистка',
+    'Room service',
+    'Лифт',
+    'Детская кроватка',
+    'Разрешены животные',
+    'Курение запрещено',
+    'Гипоаллергенные номера',
   ];
 
   const featureIcons: Record<string, string> = {
@@ -374,6 +390,22 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     'Обеденный стол': 'Utensils',
     'Диван': 'Sofa',
     'Ароматерапия': 'Flower',
+    'Балкон': 'DoorOpen',
+    'Бассейн': 'Waves',
+    'Фитнес-зал': 'Dumbbell',
+    'Ресторан': 'UtensilsCrossed',
+    'Завтрак включен': 'Coffee',
+    'Круглосуточный ресепшн': 'Clock',
+    'Консьерж': 'UserCog',
+    'Трансфер': 'Car',
+    'Прачечная': 'Shirt',
+    'Химчистка': 'Sparkles',
+    'Room service': 'Bell',
+    'Лифт': 'ArrowUpDown',
+    'Детская кроватка': 'Baby',
+    'Разрешены животные': 'PawPrint',
+    'Курение запрещено': 'Cigarette',
+    'Гипоаллергенные номера': 'Shield',
   };
 
   const geocodeAddress = async (city: string, address: string): Promise<{ lat: number; lng: number } | null> => {
@@ -393,6 +425,70 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
       console.error('Geocoding error:', error);
       return null;
     }
+  };
+
+  const [isCalculatingMetro, setIsCalculatingMetro] = useState(false);
+
+  const calculateMetroWalkTime = async (stationName: string) => {
+    if (!formData.city || !stationName) {
+      toast({
+        title: 'Ошибка',
+        description: 'Укажите город объекта и название станции',
+        variant: 'destructive',
+      });
+      return null;
+    }
+
+    setIsCalculatingMetro(true);
+    try {
+      const addressCoords = await geocodeAddress(formData.city, formData.district || '');
+      if (!addressCoords) {
+        throw new Error('Не удалось определить координаты объекта');
+      }
+
+      const metroResponse = await fetch(
+        `https://nominatim.openstreetmap.org/search?` +
+        `format=json&q=метро ${encodeURIComponent(stationName)}, ${formData.city}&limit=1`
+      );
+      const metroData = await metroResponse.json();
+      
+      if (!metroData || metroData.length === 0) {
+        throw new Error('Станция метро не найдена');
+      }
+
+      const toLat = parseFloat(metroData[0].lat);
+      const toLon = parseFloat(metroData[0].lon);
+
+      const distance = getDistanceFromLatLon(addressCoords.lat, addressCoords.lng, toLat, toLon);
+      const walkMinutes = Math.round(distance / 83);
+
+      return walkMinutes;
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка расчёта',
+        description: error.message || 'Не удалось рассчитать время пути',
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setIsCalculatingMetro(false);
+    }
+  };
+
+  const getDistanceFromLatLon = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c * 1000;
+    return d;
+  };
+
+  const deg2rad = (deg: number) => {
+    return deg * (Math.PI / 180);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1320,7 +1416,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                   <Icon name="Plus" size={16} />
                   Добавить станцию метро
                 </div>
-                <div className="grid grid-cols-[1fr_120px_auto] gap-3">
+                <div className="grid grid-cols-[1fr_120px_auto_auto] gap-3">
                   <Input
                     id="new-metro-station"
                     placeholder="Название станции"
@@ -1331,6 +1427,36 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                     placeholder="Мин"
                     defaultValue="5"
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={async () => {
+                      const stationInput = document.getElementById('new-metro-station') as HTMLInputElement;
+                      const walkInput = document.getElementById('new-metro-walk') as HTMLInputElement;
+                      const stationName = stationInput?.value.trim();
+                      
+                      if (stationName) {
+                        const calculatedMinutes = await calculateMetroWalkTime(stationName);
+                        if (calculatedMinutes !== null) {
+                          walkInput.value = calculatedMinutes.toString();
+                          toast({ 
+                            title: 'Время рассчитано', 
+                            description: `${calculatedMinutes} мин пешком до станции ${stationName}` 
+                          });
+                        }
+                      } else {
+                        toast({ title: 'Ошибка', description: 'Введите название станции', variant: 'destructive' });
+                      }
+                    }}
+                    disabled={isCalculatingMetro}
+                    title="Автоматический расчёт времени пешком"
+                  >
+                    {isCalculatingMetro ? (
+                      <Icon name="Loader2" size={16} className="animate-spin" />
+                    ) : (
+                      <Icon name="Calculator" size={16} className="text-purple-600" />
+                    )}
+                  </Button>
                   <Button
                     type="button"
                     onClick={() => {
@@ -1356,8 +1482,9 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
                     <Icon name="Plus" size={16} />
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Можно добавить несколько станций метро, если объект находится рядом с ними
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Icon name="Info" size={12} />
+                  Нажмите на калькулятор для автоматического расчёта времени пешком от объекта до станции метро
                 </p>
               </div>
             </CardContent>
