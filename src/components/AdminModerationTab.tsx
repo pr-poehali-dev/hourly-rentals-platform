@@ -149,6 +149,26 @@ export default function AdminModerationTab({ token, adminInfo, moderationFilter 
         </Badge>
       </div>
 
+      {moderationFilter === 'pending' && (
+        <Card className="p-6 bg-blue-50 border-blue-200 mb-4">
+          <div className="flex gap-4">
+            <Icon name="Info" size={24} className="text-blue-600 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-blue-900 mb-2">Заявки от владельцев</h3>
+              <p className="text-sm text-blue-800 mb-3">
+                Объекты с меткой "Заявка владельца" созданы самими владельцами через форму добавления. 
+                После одобрения владелец получит на почту логин и пароль для входа в экстранет.
+              </p>
+              <div className="space-y-1 text-sm text-blue-800">
+                <p>• Проверьте контактные данные владельца</p>
+                <p>• Убедитесь в наличии активной подписки перед одобрением</p>
+                <p>• При отклонении укажите причину в комментарии</p>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {listings.length === 0 ? (
         <Card className="p-12">
           <div className="text-center">

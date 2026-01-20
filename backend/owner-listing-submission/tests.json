@@ -1,0 +1,54 @@
+{
+  "tests": [
+    {
+      "name": "Submit valid listing",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "owner_full_name": "Иван Тестов",
+        "owner_email": "test@example.com",
+        "owner_phone": "+79001234567",
+        "owner_telegram": "@testuser",
+        "title": "Тестовый Отель",
+        "type": "Отель/Гостиница",
+        "city": "Москва",
+        "district": "Центральный",
+        "address": "ул. Тестовая, 1",
+        "description": "Описание тестового отеля",
+        "features": ["Wi-Fi", "Кондиционер"],
+        "metro_stations": [
+          {
+            "station_name": "Площадь Революции",
+            "walk_minutes": 5
+          }
+        ],
+        "has_parking": true,
+        "parking_type": "Бесплатная",
+        "parking_price_per_hour": 0,
+        "rooms": [
+          {
+            "type": "Стандартный номер",
+            "price": 1500,
+            "description": "Уютный номер",
+            "images": [],
+            "square_meters": 20,
+            "features": ["Wi-Fi", "Телевизор"],
+            "min_hours": 1,
+            "payment_methods": "Наличные, карта",
+            "cancellation_policy": "Бесплатная отмена за 1 час"
+          }
+        ],
+        "phone": "+79001234567",
+        "telegram": "@hotel"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "success": true,
+        "message": "string",
+        "listing_id": "number",
+        "owner_id": "number"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

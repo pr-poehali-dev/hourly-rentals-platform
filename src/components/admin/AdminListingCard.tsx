@@ -51,9 +51,9 @@ export default function AdminListingCard({
           <Badge variant="secondary" className="absolute top-3 left-3">Архив</Badge>
         )}
         {listing.moderation_status === 'pending' && !listing.is_archived && (
-          <Badge className="absolute top-3 left-3 bg-orange-500">
-            <Icon name="Clock" size={12} className="mr-1" />
-            На модерации
+          <Badge className={`absolute top-3 left-3 ${listing.created_by_owner ? 'bg-blue-500' : 'bg-orange-500'}`}>
+            <Icon name={listing.created_by_owner ? "UserPlus" : "Clock"} size={12} className="mr-1" />
+            {listing.created_by_owner ? 'Заявка владельца' : 'На модерации'}
           </Badge>
         )}
       </div>

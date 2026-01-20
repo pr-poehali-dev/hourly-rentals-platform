@@ -16,6 +16,7 @@ import OwnerDashboard from "./pages/OwnerDashboard";
 import CompanyInfo from "./pages/CompanyInfo";
 import Offer from "./pages/Offer";
 import NotFound from "./pages/NotFound";
+import AddListing from "./pages/AddListing";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/offer" element={<Offer />} />
           <Route path="/listing/:listingId" element={<ListingPage />} />
           <Route path="/listing/:listingId/room/:roomIndex" element={<RoomDetails />} />
+          <Route path="/add-listing" element={<AddListing />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
