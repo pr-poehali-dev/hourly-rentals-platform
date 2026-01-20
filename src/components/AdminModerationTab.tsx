@@ -195,7 +195,15 @@ export default function AdminModerationTab({ token, adminInfo, moderationFilter 
                 <div className="flex-1 space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="text-xl font-semibold">{listing.title}</h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-xl font-semibold">{listing.title}</h3>
+                        {listing.created_by_owner && (
+                          <Badge className="bg-blue-500">
+                            <Icon name="UserPlus" size={12} className="mr-1" />
+                            Заявка владельца
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-muted-foreground">
                         {listing.city}, {listing.district}
                       </p>
@@ -285,9 +293,29 @@ export default function AdminModerationTab({ token, adminInfo, moderationFilter 
                           onClick={async () => {
                             try {
                               await api.moderateListing(token, listing.id, 'approved', '');
+                              
+                              // Если это заявка владельца, отправляем email
+                              if (listing.created_by_owner) {
+                                try {
+                                  const emailResponse = await fetch('https://functions.poehali.dev/be8d7c03-13d9-42fe-a041-a17c5e5ff5b2', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ listing_id: listing.id }),
+                                  });
+                                  const emailResult = await emailResponse.json();
+                                  if (emailResult.error) {
+                                    console.error('Email error:', emailResult.error);
+                                  }
+                                } catch (emailError) {
+                                  console.error('Failed to send email:', emailError);
+                                }
+                              }
+                              
                               toast({
                                 title: 'Успешно',
-                                description: 'Объект одобрен и опубликован',
+                                description: listing.created_by_owner 
+                                  ? 'Объект одобрен, владелец получит email с данными для входа'
+                                  : 'Объект одобрен и опубликован',
                               });
                               loadPendingListings();
                             } catch (error: any) {
@@ -302,7 +330,7 @@ export default function AdminModerationTab({ token, adminInfo, moderationFilter 
                           className="bg-green-600 hover:bg-green-700"
                         >
                           <Icon name="CheckCircle" size={16} className="mr-2" />
-                          Одобрить
+                          {listing.created_by_owner ? 'Одобрить и отправить email' : 'Одобрить'}
                         </Button>
                         <Button
                           variant="outline"

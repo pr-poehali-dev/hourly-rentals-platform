@@ -1,0 +1,18 @@
+{
+  "tests": [
+    {
+      "name": "Send credentials for owner listing",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "listing_id": 359
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

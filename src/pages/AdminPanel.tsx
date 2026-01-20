@@ -16,6 +16,7 @@ import AdminListingsFilters from '@/components/admin/AdminListingsFilters';
 import AdminListingCard from '@/components/admin/AdminListingCard';
 import SubscriptionDialog from '@/components/admin/SubscriptionDialog';
 import ModerationDialog from '@/components/admin/ModerationDialog';
+import OwnerModerationDialog from '@/components/admin/OwnerModerationDialog';
 import ExpertRatingDialogFull from '@/components/ExpertRatingDialogFull';
 
 export default function AdminPanel() {
@@ -397,16 +398,30 @@ export default function AdminPanel() {
           onSubmit={handleSetSubscription}
         />
 
-        <ModerationDialog
-          open={moderationDialog.open}
-          listing={moderationDialog.listing}
-          moderationStatus={moderationStatus}
-          moderationComment={moderationComment}
-          onClose={() => setModerationDialog({ open: false, listing: null })}
-          onStatusChange={setModerationStatus}
-          onCommentChange={setModerationComment}
-          onSubmit={handleModerationSubmit}
-        />
+        {moderationDialog.listing?.created_by_owner ? (
+          <OwnerModerationDialog
+            open={moderationDialog.open}
+            listing={moderationDialog.listing}
+            moderationStatus={moderationStatus}
+            moderationComment={moderationComment}
+            token={token!}
+            onClose={() => setModerationDialog({ open: false, listing: null })}
+            onStatusChange={setModerationStatus}
+            onCommentChange={setModerationComment}
+            onSubmit={handleModerationSubmit}
+          />
+        ) : (
+          <ModerationDialog
+            open={moderationDialog.open}
+            listing={moderationDialog.listing}
+            moderationStatus={moderationStatus}
+            moderationComment={moderationComment}
+            onClose={() => setModerationDialog({ open: false, listing: null })}
+            onStatusChange={setModerationStatus}
+            onCommentChange={setModerationComment}
+            onSubmit={handleModerationSubmit}
+          />
+        )}
 
         <ExpertRatingDialogFull
           open={expertRatingDialog.open}

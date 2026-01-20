@@ -1,4 +1,5 @@
 {
+  "send-owner-credentials": "https://functions.poehali.dev/be8d7c03-13d9-42fe-a041-a17c5e5ff5b2",
   "owner-listing-submission": "https://functions.poehali.dev/ee10a4fa-4437-4fe1-87b7-36ebaf726da9",
   "get-virtual-number": "https://functions.poehali.dev/4a500ec2-2f33-49d9-87d0-3779d8d52ae5",
   "route-call": "https://functions.poehali.dev/118f6961-69ab-4912-bbec-0481012af402",
