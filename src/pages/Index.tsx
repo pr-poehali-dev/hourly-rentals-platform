@@ -388,7 +388,7 @@ export default function Index() {
             <h2 className="text-4xl font-bold mb-6">Партнерам</h2>
             <Card className="p-8">
               <h3 className="text-2xl font-bold mb-4">Разместите свой объект</h3>
-              <p className="mb-4">Станьте партнером ЧасАренда и получите доступ к миллионам клиентов по всей России.</p>
+              <p className="mb-4">Станьте партнером 120minut.ru и получите доступ к миллионам клиентов по всей России.</p>
               <div className="space-y-4 mt-6">
                 <div className="flex gap-4">
                   <div className="text-3xl">💰</div>
