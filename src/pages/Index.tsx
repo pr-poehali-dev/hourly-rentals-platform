@@ -412,9 +412,23 @@ export default function Index() {
                   </div>
                 </div>
               </div>
-              <Button size="lg" className="mt-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                Стать партнером
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                <a href="/add-listing">
+                  <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                    <Icon name="Plus" size={20} className="mr-2" />
+                    Добавить объект
+                  </Button>
+                </a>
+                <a href="tel:+79141965172">
+                  <Button size="lg" variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50 hover:text-purple-800">
+                    <Icon name="Phone" size={20} className="mr-2" />
+                    Позвонить в поддержку
+                  </Button>
+                </a>
+              </div>
+              <p className="text-sm text-muted-foreground mt-4">
+                📞 Телефон поддержки: <a href="tel:+79141965172" className="text-purple-600 hover:underline font-medium">+7 (914) 196-51-72</a>
+              </p>
             </Card>
           </div>
         )}
