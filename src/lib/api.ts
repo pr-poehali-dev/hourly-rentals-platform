@@ -21,6 +21,7 @@ export const api = {
   // Авторизация
   login: async (login: string, password: string) => {
     try {
+      console.log('[API] Отправка запроса авторизации...');
       const response = await fetch(API_URLS.adminAuth, {
         method: 'POST',
         mode: 'cors',
@@ -31,14 +32,23 @@ export const api = {
         body: JSON.stringify({ email: login, password }),
       });
       
+      console.log('[API] Получен ответ:', response.status, response.statusText);
+      
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
         throw new Error(errorData.error || `HTTP ${response.status}`);
       }
       
-      return response.json();
-    } catch (error) {
-      console.error('Login error:', error);
+      const data = await response.json();
+      console.log('[API] Успешная авторизация');
+      return data;
+    } catch (error: any) {
+      console.error('[API] Ошибка входа:', error);
       throw error;
     }
   },
