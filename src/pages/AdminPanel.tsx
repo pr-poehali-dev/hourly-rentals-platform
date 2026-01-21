@@ -326,6 +326,15 @@ export default function AdminPanel() {
     return groups;
   }, [paginatedListings]);
 
+  // Подсчёт всех объектов по городам (для всех страниц)
+  const cityTotals = useMemo(() => {
+    const totals: { [city: string]: number } = {};
+    filteredListings.forEach(listing => {
+      totals[listing.city] = (totals[listing.city] || 0) + 1;
+    });
+    return totals;
+  }, [filteredListings]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
       <AdminPanelHeader
@@ -392,7 +401,7 @@ export default function AdminPanel() {
                     <h3 className="text-2xl font-bold">{city}</h3>
                   </div>
                   <Badge variant="secondary" className="text-base px-3 py-1">
-                    {cityListings.length}
+                    {cityListings.length} из {cityTotals[city] || 0}
                   </Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -419,7 +428,10 @@ export default function AdminPanel() {
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-8">
                 <Button
-                  onClick={() => setCurrentPage(1)}
+                  onClick={() => {
+                    setCurrentPage(1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   disabled={currentPage === 1}
                   variant="outline"
                   size="sm"
@@ -427,7 +439,10 @@ export default function AdminPanel() {
                   <Icon name="ChevronsLeft" size={16} />
                 </Button>
                 <Button
-                  onClick={() => setCurrentPage(currentPage - 1)}
+                  onClick={() => {
+                    setCurrentPage(currentPage - 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   disabled={currentPage === 1}
                   variant="outline"
                   size="sm"
@@ -445,7 +460,10 @@ export default function AdminPanel() {
                 </div>
                 
                 <Button
-                  onClick={() => setCurrentPage(currentPage + 1)}
+                  onClick={() => {
+                    setCurrentPage(currentPage + 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   disabled={currentPage === totalPages}
                   variant="outline"
                   size="sm"
@@ -453,7 +471,10 @@ export default function AdminPanel() {
                   <Icon name="ChevronRight" size={16} />
                 </Button>
                 <Button
-                  onClick={() => setCurrentPage(totalPages)}
+                  onClick={() => {
+                    setCurrentPage(totalPages);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   disabled={currentPage === totalPages}
                   variant="outline"
                   size="sm"
