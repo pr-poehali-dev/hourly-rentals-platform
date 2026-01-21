@@ -309,8 +309,22 @@ export default function AdminPanel() {
     setCurrentPage(1);
     
     return listings.filter(listing => {
-      // Фильтр архивных объектов
-      const archiveMatch = showArchived || !listing.is_archived;
+      // Если включён архив - показываем только неактивные объекты
+      if (showArchived) {
+        const isInactive = !listing.subscription_expires_at || 
+                          new Date(listing.subscription_expires_at) < new Date();
+        const isRejected = listing.moderation_status === 'rejected';
+        const isPending = listing.moderation_status === 'pending';
+        
+        // Архив = объекты без подписки, отклонённые или на модерации
+        if (!isInactive && !isRejected && !isPending) {
+          return false;
+        }
+      } else {
+        // В основном списке НЕ показываем архивные
+        if (listing.is_archived) return false;
+      }
+      
       const cityMatch = selectedCity === 'all' || listing.city === selectedCity;
       const typeMatch = selectedType === 'all' || listing.type === selectedType;
       
@@ -322,10 +336,10 @@ export default function AdminPanel() {
           (room.expert_fullness_rating && room.expert_fullness_rating > 0)
         );
         const ratedMatch = !hasMainRating && !hasRoomRatings;
-        return archiveMatch && cityMatch && typeMatch && ratedMatch;
+        return cityMatch && typeMatch && ratedMatch;
       }
       
-      return archiveMatch && cityMatch && typeMatch;
+      return cityMatch && typeMatch;
     });
   }, [listings, selectedCity, selectedType, showOnlyUnrated, showArchived]);
 
