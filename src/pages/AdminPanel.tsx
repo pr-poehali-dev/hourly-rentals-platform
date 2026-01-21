@@ -69,60 +69,22 @@ export default function AdminPanel() {
   const loadListings = async () => {
     setIsLoading(true);
     try {
-      const limit = 100;
+      const limit = 200;
       
-      // Загружаем активные И архивные объекты отдельно
-      const activeFirstBatch = await api.getListings(token!, false, limit, 0);
-      const archivedFirstBatch = await api.getListings(token!, true, limit, 0);
+      const [activeData, archivedData] = await Promise.all([
+        api.getListings(token!, false, limit, 0),
+        api.getListings(token!, true, limit, 0)
+      ]);
       
-      if (activeFirstBatch.error || archivedFirstBatch.error) {
-        throw new Error(activeFirstBatch.error || archivedFirstBatch.error);
+      if (activeData.error || archivedData.error) {
+        throw new Error(activeData.error || archivedData.error);
       }
       
-      if (!Array.isArray(activeFirstBatch) || !Array.isArray(archivedFirstBatch)) {
+      if (!Array.isArray(activeData) || !Array.isArray(archivedData)) {
         throw new Error('API вернул некорректный формат данных');
       }
       
-      // Загружаем остальные порции параллельно
-      const totalExpected = 400;
-      const activeRequests = [];
-      const archivedRequests = [];
-      
-      if (activeFirstBatch.length >= limit) {
-        for (let offset = limit; offset < totalExpected; offset += limit) {
-          activeRequests.push(api.getListings(token!, false, limit, offset));
-        }
-      }
-      
-      if (archivedFirstBatch.length >= limit) {
-        for (let offset = limit; offset < totalExpected; offset += limit) {
-          archivedRequests.push(api.getListings(token!, true, limit, offset));
-        }
-      }
-      
-      const activeResults = activeRequests.length > 0 ? await Promise.all(activeRequests) : [];
-      const archivedResults = archivedRequests.length > 0 ? await Promise.all(archivedRequests) : [];
-      
-      const allActive = [activeFirstBatch, ...activeResults].flat();
-      const allArchived = [archivedFirstBatch, ...archivedResults].flat();
-      
-      // Фильтруем архивные из активных (на случай дублей)
-      const archivedFiltered = allArchived.filter((listing: any) => listing.is_archived);
-      
-      const allListings = [...allActive, ...archivedFiltered];
-      
-      console.log('=== LOADED ALL LISTINGS ===');
-      console.log('Total active:', allActive.length);
-      console.log('Total archived:', archivedFiltered.length);
-      console.log('Total listings:', allListings.length);
-      
-      // Подсчёт по городам для диагностики
-      const cityCounts: { [city: string]: number } = {};
-      allListings.forEach(l => {
-        cityCounts[l.city] = (cityCounts[l.city] || 0) + 1;
-      });
-      console.log('Listings by city:', cityCounts);
-      
+      const allListings = [...activeData, ...archivedData.filter((l: any) => l.is_archived)];
       const sortedData = [...allListings].sort((a, b) => b.id - a.id);
       setListings(sortedData);
     } catch (error: any) {
@@ -193,10 +155,10 @@ export default function AdminPanel() {
     setShowForm(true);
   };
 
-  const handleFormClose = () => {
+  const handleFormClose = (shouldReload = false) => {
     setShowForm(false);
     setSelectedListing(null);
-    loadListings();
+    if (shouldReload) loadListings();
   };
 
   const handleModerate = (listing: any) => {
@@ -223,7 +185,12 @@ export default function AdminPanel() {
 
       setModerationDialog({ open: false, listing: null });
       setModerationComment('');
-      loadListings();
+      
+      setListings(prev => prev.map(l => 
+        l.id === moderationDialog.listing.id 
+          ? { ...l, moderation_status: moderationStatus, moderation_comment: moderationComment }
+          : l
+      ));
     } catch (error: any) {
       toast({
         title: 'Ошибка',
@@ -240,7 +207,10 @@ export default function AdminPanel() {
         title: 'Успешно',
         description: `Позиция изменена на #${newPosition}`,
       });
-      loadListings();
+      
+      setListings(prev => prev.map(l => 
+        l.id === listingId ? { ...l, auction: newPosition } : l
+      ));
     } catch (error: any) {
       toast({
         title: 'Ошибка',
@@ -266,9 +236,18 @@ export default function AdminPanel() {
         title: 'Успешно',
         description: `Подписка установлена на ${subscriptionDays} дней`,
       });
+      
+      const newExpiresAt = new Date();
+      newExpiresAt.setDate(newExpiresAt.getDate() + subscriptionDays);
+      
+      setListings(prev => prev.map(l => 
+        l.id === subscriptionDialog.listing.id 
+          ? { ...l, subscription_expires_at: newExpiresAt.toISOString() }
+          : l
+      ));
+      
       setSubscriptionDialog({ open: false, listing: null });
       setSubscriptionDays(30);
-      loadListings();
     } catch (error: any) {
       toast({
         title: 'Ошибка',
@@ -305,9 +284,6 @@ export default function AdminPanel() {
   }, [listings]);
 
   const filteredListings = useMemo(() => {
-    // Сбрасываем страницу при изменении фильтров
-    setCurrentPage(1);
-    
     return listings.filter(listing => {
       // Если включён архив - показываем только неактивные объекты
       if (showArchived) {
@@ -342,6 +318,10 @@ export default function AdminPanel() {
       return cityMatch && typeMatch;
     });
   }, [listings, selectedCity, selectedType, showOnlyUnrated, showArchived]);
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCity, selectedType, showOnlyUnrated, showArchived]);
 
   const paginatedListings = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;

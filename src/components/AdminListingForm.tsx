@@ -28,7 +28,7 @@ import { CSS } from '@dnd-kit/utilities';
 interface AdminListingFormProps {
   listing: any;
   token: string;
-  onClose: () => void;
+  onClose: (shouldReload?: boolean) => void;
 }
 
 interface SortableRoomItemProps {
@@ -643,7 +643,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
       });
       setEditingRoomIndex(null);
       
-      onClose();
+      onClose(true);
     } catch (error: any) {
       toast({
         title: 'Ошибка',
@@ -1087,7 +1087,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-purple-200 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" onClick={onClose}>
+            <Button variant="outline" size="icon" onClick={() => onClose()}>
               <Icon name="ArrowLeft" size={20} />
             </Button>
             <h1 className="text-2xl font-bold">

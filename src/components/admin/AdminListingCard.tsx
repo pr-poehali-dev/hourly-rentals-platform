@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ interface AdminListingCardProps {
   onExpertRate?: (listing: any) => void;
 }
 
-export default function AdminListingCard({
+const AdminListingCard = memo(function AdminListingCard({
   listing,
   cityListings,
   adminInfo,
@@ -206,4 +207,6 @@ export default function AdminListingCard({
       </CardContent>
     </Card>
   );
-}
+});
+
+export default AdminListingCard;
