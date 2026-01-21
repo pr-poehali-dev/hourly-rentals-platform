@@ -326,14 +326,15 @@ export default function AdminPanel() {
     return groups;
   }, [paginatedListings]);
 
-  // Подсчёт всех объектов по городам (для всех страниц)
+  // Подсчёт всех объектов по городам (из всех объектов, не только отфильтрованных)
   const cityTotals = useMemo(() => {
     const totals: { [city: string]: number } = {};
-    filteredListings.forEach(listing => {
+    listings.forEach(listing => {
+      if (!showArchived && listing.is_archived) return;
       totals[listing.city] = (totals[listing.city] || 0) + 1;
     });
     return totals;
-  }, [filteredListings]);
+  }, [listings, showArchived]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
