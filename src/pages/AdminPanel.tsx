@@ -64,7 +64,7 @@ export default function AdminPanel() {
     }
     
     loadListings();
-  }, [showArchived, token, navigate]);
+  }, [token, navigate]);
 
   const loadListings = async () => {
     setIsLoading(true);
@@ -72,7 +72,8 @@ export default function AdminPanel() {
       const limit = 100;
       
       // Сначала загружаем первую порцию чтобы узнать сколько всего
-      const firstBatch = await api.getListings(token!, showArchived, limit, 0);
+      // ВАЖНО: всегда загружаем ВСЕ объекты (включая архивные) для корректного подсчёта cityTotals
+      const firstBatch = await api.getListings(token!, true, limit, 0);
       
       if (firstBatch.error) {
         throw new Error(firstBatch.error);
@@ -94,7 +95,7 @@ export default function AdminPanel() {
       const requests = [];
       
       for (let offset = limit; offset < totalExpected; offset += limit) {
-        requests.push(api.getListings(token!, showArchived, limit, offset));
+        requests.push(api.getListings(token!, true, limit, offset));
       }
       
       const results = await Promise.all(requests);
@@ -289,6 +290,8 @@ export default function AdminPanel() {
     setCurrentPage(1);
     
     return listings.filter(listing => {
+      // Фильтр архивных объектов
+      const archiveMatch = showArchived || !listing.is_archived;
       const cityMatch = selectedCity === 'all' || listing.city === selectedCity;
       const typeMatch = selectedType === 'all' || listing.type === selectedType;
       
@@ -300,12 +303,12 @@ export default function AdminPanel() {
           (room.expert_fullness_rating && room.expert_fullness_rating > 0)
         );
         const ratedMatch = !hasMainRating && !hasRoomRatings;
-        return cityMatch && typeMatch && ratedMatch;
+        return archiveMatch && cityMatch && typeMatch && ratedMatch;
       }
       
-      return cityMatch && typeMatch;
+      return archiveMatch && cityMatch && typeMatch;
     });
-  }, [listings, selectedCity, selectedType, showOnlyUnrated]);
+  }, [listings, selectedCity, selectedType, showOnlyUnrated, showArchived]);
 
   const paginatedListings = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
