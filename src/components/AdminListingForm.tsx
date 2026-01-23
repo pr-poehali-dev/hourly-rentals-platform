@@ -68,8 +68,8 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
   } = useListingForm(listing, token, onClose);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-4">
-      <Card className="w-full max-w-6xl my-8">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 overflow-y-auto p-4">
+      <Card className="w-full max-w-4xl my-8">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Редактирование объекта</CardTitle>
           <Button variant="ghost" size="sm" onClick={() => onClose()}>
