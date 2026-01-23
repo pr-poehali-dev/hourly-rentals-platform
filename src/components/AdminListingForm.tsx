@@ -97,21 +97,35 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     try {
       console.log('Submitting form data:', formData);
       
-      const response = await api.updateListing(listing.id, formData, token);
-      
-      console.log('Update response:', response);
+      let response;
+      if (listing && listing.id) {
+        response = await api.updateListing(token, listing.id, formData);
+        console.log('Update response:', response);
 
-      toast({
-        title: "Объект обновлен",
-        description: "Изменения успешно сохранены",
-      });
+        toast({
+          title: "Объект обновлен",
+          description: "Изменения успешно сохранены",
+        });
+      } else {
+        response = await api.createListing(token, formData);
+        console.log('Create response:', response);
+
+        if (response.error) {
+          throw new Error(response.error);
+        }
+
+        toast({
+          title: "Объект создан",
+          description: "Новый объект успешно добавлен",
+        });
+      }
 
       onClose(true);
     } catch (error: any) {
-      console.error('Failed to update listing:', error);
+      console.error('Failed to save listing:', error);
       toast({
-        title: "Ошибка обновления",
-        description: error.message || "Не удалось обновить объект",
+        title: "Ошибка сохранения",
+        description: error.message || "Не удалось сохранить объект",
         variant: "destructive",
       });
     } finally {

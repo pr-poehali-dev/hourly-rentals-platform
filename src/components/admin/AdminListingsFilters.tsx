@@ -88,7 +88,7 @@ export default function AdminListingsFilters({
           className={showOnlyUnrated ? 'bg-purple-600 hover:bg-purple-700' : ''}
         >
           <Icon name="Award" size={18} className="mr-2" />
-          {showOnlyUnrated ? 'Все объекты' : 'Без оценки'}
+          {showOnlyUnrated ? 'Показать все' : 'Без оценки'}
         </Button>
         <Button
           variant={showArchived ? 'default' : 'outline'}

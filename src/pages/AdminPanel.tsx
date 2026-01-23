@@ -30,8 +30,6 @@ export default function AdminPanel() {
   const [adminInfo, setAdminInfo] = useState<any>(null);
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 50;
   const [subscriptionDialog, setSubscriptionDialog] = useState<{ open: boolean; listing: any | null }>({ open: false, listing: null });
   const [subscriptionDays, setSubscriptionDays] = useState<number>(30);
   const [moderationDialog, setModerationDialog] = useState<{ open: boolean; listing: any | null }>({ open: false, listing: null });
@@ -319,17 +317,9 @@ export default function AdminPanel() {
     });
   }, [listings, selectedCity, selectedType, showOnlyUnrated, showArchived]);
   
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedCity, selectedType, showOnlyUnrated, showArchived]);
 
-  const paginatedListings = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredListings.slice(startIndex, endIndex);
-  }, [filteredListings, currentPage, ITEMS_PER_PAGE]);
 
-  const totalPages = Math.ceil(filteredListings.length / ITEMS_PER_PAGE);
+
 
   const groupedByCity = useMemo(() => {
     const groups: { [city: string]: any[] } = {};
@@ -447,64 +437,7 @@ export default function AdminPanel() {
               </div>
             ))}
             
-            {false && totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-8">
-                <Button
-                  onClick={() => {
-                    setCurrentPage(1);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  disabled={currentPage === 1}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Icon name="ChevronsLeft" size={16} />
-                </Button>
-                <Button
-                  onClick={() => {
-                    setCurrentPage(currentPage - 1);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  disabled={currentPage === 1}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Icon name="ChevronLeft" size={16} />
-                </Button>
-                
-                <div className="flex items-center gap-2 px-4">
-                  <span className="text-sm font-medium">
-                    Страница {currentPage} из {totalPages}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    ({filteredListings.length} объектов)
-                  </span>
-                </div>
-                
-                <Button
-                  onClick={() => {
-                    setCurrentPage(currentPage + 1);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  disabled={currentPage === totalPages}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Icon name="ChevronRight" size={16} />
-                </Button>
-                <Button
-                  onClick={() => {
-                    setCurrentPage(totalPages);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  disabled={currentPage === totalPages}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Icon name="ChevronsRight" size={16} />
-                </Button>
-              </div>
-            )}
+
           </div>
         )}
 
