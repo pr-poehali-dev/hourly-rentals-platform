@@ -58,7 +58,7 @@ export default function OwnerRegister() {
             Регистрация владельца
           </CardTitle>
           <CardDescription>
-            Получите 100 бонусных рублей при регистрации
+            Получите 5000 бонусов при регистрации и добавлении объекта на сайт, где 1 балл = 1 рублю
           </CardDescription>
         </CardHeader>
         <CardContent>
