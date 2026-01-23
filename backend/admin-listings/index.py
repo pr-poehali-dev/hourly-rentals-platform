@@ -68,15 +68,16 @@ def handler(event: dict, context) -> dict:
                 print(f"[DEBUG] Fetching moderation listings with status: {moderation_filter}")
                 # ⚠️ Явно указываем поля БЕЗ images для экономии памяти
                 query = f"""
-                    SELECT l.id, l.owner_id, l.title, l.address, l.longitude, l.latitude, l.district,
-                           l.opening_hours, l.parking_info, l.contact_phone, l.whatsapp_number, l.telegram_number,
-                           l.deposit, l.payment_methods, l.rules, l.cancellation_policy, l.description, l.image_url,
-                           l.auction, l.is_archived, l.moderation_status, l.rejection_reason,
+                    SELECT l.id, l.owner_id, l.title, l.city, l.district, l.lat, l.lng,
+                           l.phone, l.telegram, l.description, l.image_url, l.logo_url,
+                           l.auction, l.is_archived, l.moderation_status, l.moderation_comment,
                            l.created_at, l.updated_at, l.created_by_employee_id,
-                           CASE WHEN l.images IS NOT NULL AND array_length(l.images, 1) > 0 
-                                THEN array_length(l.images, 1) 
-                                ELSE 0 
-                           END as images_count,
+                           l.subscription_expires_at, l.subscription_auto_renew,
+                           l.type, l.price, l.rating, l.reviews, l.metro, l.metro_walk,
+                           l.has_parking, l.features, l.min_hours,
+                           l.square_meters, l.parking_type, l.parking_price_per_hour,
+                           l.expert_fullness_rating, l.expert_fullness_feedback,
+                           l.expert_photo_rating, l.expert_photo_feedback, l.short_title,
                            a.name as created_by_employee_name,
                            o.full_name as owner_name
                     FROM t_p39732784_hourly_rentals_platf.listings l
@@ -91,15 +92,16 @@ def handler(event: dict, context) -> dict:
             elif show_archived:
                 print(f"[DEBUG] Fetching archived listings")
                 # ⚠️ Явно указываем поля БЕЗ images для экономии памяти
-                cur.execute(f"""SELECT id, owner_id, title, address, longitude, latitude, district, 
-                           opening_hours, parking_info, contact_phone, whatsapp_number, telegram_number, 
-                           deposit, payment_methods, rules, cancellation_policy, description, image_url,
-                           auction, is_archived, moderation_status, rejection_reason, 
+                cur.execute(f"""SELECT id, owner_id, title, city, district, lat, lng,
+                           phone, telegram, description, image_url, logo_url,
+                           auction, is_archived, moderation_status, moderation_comment,
                            created_at, updated_at, created_by_employee_id,
-                           CASE WHEN images IS NOT NULL AND array_length(images, 1) > 0 
-                                THEN array_length(images, 1) 
-                                ELSE 0 
-                           END as images_count
+                           subscription_expires_at, subscription_auto_renew,
+                           type, price, rating, reviews, metro, metro_walk,
+                           has_parking, features, min_hours,
+                           square_meters, parking_type, parking_price_per_hour,
+                           expert_fullness_rating, expert_fullness_feedback,
+                           expert_photo_rating, expert_photo_feedback, short_title
                     FROM t_p39732784_hourly_rentals_platf.listings 
                     WHERE is_archived = true 
                     ORDER BY created_at DESC 
@@ -107,15 +109,16 @@ def handler(event: dict, context) -> dict:
             else:
                 print(f"[DEBUG] Fetching active listings")
                 # ⚠️ Явно указываем поля БЕЗ images для экономии памяти
-                cur.execute(f"""SELECT id, owner_id, title, address, longitude, latitude, district, 
-                           opening_hours, parking_info, contact_phone, whatsapp_number, telegram_number, 
-                           deposit, payment_methods, rules, cancellation_policy, description, image_url,
-                           auction, is_archived, moderation_status, rejection_reason, 
+                cur.execute(f"""SELECT id, owner_id, title, city, district, lat, lng,
+                           phone, telegram, description, image_url, logo_url,
+                           auction, is_archived, moderation_status, moderation_comment,
                            created_at, updated_at, created_by_employee_id,
-                           CASE WHEN images IS NOT NULL AND array_length(images, 1) > 0 
-                                THEN array_length(images, 1) 
-                                ELSE 0 
-                           END as images_count
+                           subscription_expires_at, subscription_auto_renew,
+                           type, price, rating, reviews, metro, metro_walk,
+                           has_parking, features, min_hours,
+                           square_meters, parking_type, parking_price_per_hour,
+                           expert_fullness_rating, expert_fullness_feedback,
+                           expert_photo_rating, expert_photo_feedback, short_title
                     FROM t_p39732784_hourly_rentals_platf.listings 
                     WHERE is_archived = false 
                     ORDER BY auction ASC 
