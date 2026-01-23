@@ -147,32 +147,39 @@ def handler(event: dict, context) -> dict:
             
             # Получаем все комнаты одним запросом (БЕЗ images для оптимизации)
             listing_ids = [l['id'] for l in listings]
-            listing_ids_str = ','.join([str(lid) for lid in listing_ids])
             
-            print(f"[DEBUG] Fetching rooms for {len(listing_ids)} listings")
-            # ⚠️ НЕ загружаем images для экономии памяти - только считаем количество
-            rooms_query = f"""SELECT id, listing_id, type, price, description, square_meters, features, 
-                           min_hours, payment_methods, cancellation_policy,
-                           CASE WHEN images IS NOT NULL AND array_length(images, 1) > 0 
-                                THEN array_length(images, 1)
-                                ELSE 0
-                           END as images_count,
-                           expert_photo_rating, expert_photo_feedback,
-                           expert_fullness_rating, expert_fullness_feedback
-                    FROM t_p39732784_hourly_rentals_platf.rooms 
-                    WHERE listing_id IN ({listing_ids_str})"""
-            cur.execute(rooms_query)
-            all_rooms = cur.fetchall()
-            print(f"[DEBUG] Fetched {len(all_rooms)} rooms")
+            all_rooms = []
+            all_metro = []
             
-            # Получаем все станции метро одним запросом
-            print(f"[DEBUG] Fetching metro stations")
-            metro_query = f"""SELECT listing_id, station_name, walk_minutes 
-                    FROM t_p39732784_hourly_rentals_platf.metro_stations 
-                    WHERE listing_id IN ({listing_ids_str})"""
-            cur.execute(metro_query)
-            all_metro = cur.fetchall()
-            print(f"[DEBUG] Fetched {len(all_metro)} metro stations")
+            if listing_ids:
+                listing_ids_str = ','.join([str(lid) for lid in listing_ids])
+                
+                print(f"[DEBUG] Fetching rooms for {len(listing_ids)} listings")
+                # ⚠️ НЕ загружаем images для экономии памяти - только считаем количество
+                rooms_query = f"""SELECT id, listing_id, type, price, description, square_meters, features, 
+                               min_hours, payment_methods, cancellation_policy,
+                               CASE WHEN images IS NOT NULL AND array_length(images, 1) > 0 
+                                    THEN array_length(images, 1)
+                                    ELSE 0
+                               END as images_count,
+                               expert_photo_rating, expert_photo_feedback,
+                               expert_fullness_rating, expert_fullness_feedback
+                        FROM t_p39732784_hourly_rentals_platf.rooms 
+                        WHERE listing_id IN ({listing_ids_str})"""
+                cur.execute(rooms_query)
+                all_rooms = cur.fetchall()
+                print(f"[DEBUG] Fetched {len(all_rooms)} rooms")
+                
+                # Получаем все станции метро одним запросом
+                print(f"[DEBUG] Fetching metro stations")
+                metro_query = f"""SELECT listing_id, station_name, walk_minutes 
+                        FROM t_p39732784_hourly_rentals_platf.metro_stations 
+                        WHERE listing_id IN ({listing_ids_str})"""
+                cur.execute(metro_query)
+                all_metro = cur.fetchall()
+                print(f"[DEBUG] Fetched {len(all_metro)} metro stations")
+            else:
+                print(f"[DEBUG] No listings to fetch rooms/metro for")
             
             # Группируем по listing_id
             rooms_by_listing = {}
