@@ -119,22 +119,17 @@ export default function ListingDetailsFields({
           <div className="space-y-2">
             {formData.metro_stations.map((station: any, index: number) => (
               <div key={index} className="flex gap-2 items-start p-3 border rounded-lg bg-gray-50">
-                <div className="flex-1 grid grid-cols-3 gap-2">
+                <div className="flex-1 grid grid-cols-2 gap-2">
                   <Input
-                    value={station.name}
-                    onChange={(e) => updateMetroStation(index, 'name', e.target.value)}
+                    value={station.station_name}
+                    onChange={(e) => updateMetroStation(index, 'station_name', e.target.value)}
                     placeholder="Название станции"
                   />
                   <Input
                     type="number"
-                    value={station.walk_time}
-                    onChange={(e) => updateMetroStation(index, 'walk_time', Number(e.target.value))}
+                    value={station.walk_minutes}
+                    onChange={(e) => updateMetroStation(index, 'walk_minutes', Number(e.target.value))}
                     placeholder="Минут пешком"
-                  />
-                  <Input
-                    value={station.line}
-                    onChange={(e) => updateMetroStation(index, 'line', e.target.value)}
-                    placeholder="Линия (например: red)"
                   />
                 </div>
                 <Button

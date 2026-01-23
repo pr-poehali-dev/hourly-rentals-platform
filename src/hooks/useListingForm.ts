@@ -330,7 +330,7 @@ export function useListingForm(listing: any, token: string, onClose: (shouldRelo
   const addMetroStation = () => {
     setFormData(prev => ({
       ...prev,
-      metro_stations: [...prev.metro_stations, { name: '', walk_time: 0, line: '' }]
+      metro_stations: [...prev.metro_stations, { station_name: '', walk_minutes: 5 }]
     }));
   };
 
