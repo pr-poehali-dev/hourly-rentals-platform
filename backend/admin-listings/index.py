@@ -104,6 +104,7 @@ def handler(event: dict, context) -> dict:
             listing_ids_str = ','.join([str(lid) for lid in listing_ids])
             
             print(f"[DEBUG] Fetching rooms for {len(listing_ids)} listings")
+            # ⚠️ НЕ загружаем images для экономии памяти - только считаем количество
             rooms_query = f"""SELECT id, listing_id, type, price, description, square_meters, features, 
                            min_hours, payment_methods, cancellation_policy,
                            CASE WHEN images IS NOT NULL AND array_length(images, 1) > 0 
@@ -147,6 +148,12 @@ def handler(event: dict, context) -> dict:
             result = []
             for listing in listings:
                 listing_dict = dict(listing)
+                
+                # ⚠️ КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Убираем массив изображений из listing (оставляем только image_url)
+                if 'images' in listing_dict and isinstance(listing_dict['images'], list):
+                    listing_dict['images_count'] = len(listing_dict['images'])
+                    listing_dict['images'] = []  # Удаляем полный массив URL
+                
                 # Обрезаем длинные текстовые поля для списка
                 if listing_dict.get('description') and len(listing_dict['description']) > 200:
                     listing_dict['description'] = listing_dict['description'][:200] + '...'
@@ -155,13 +162,14 @@ def handler(event: dict, context) -> dict:
                 if listing_dict.get('cancellation_policy') and len(listing_dict['cancellation_policy']) > 100:
                     listing_dict['cancellation_policy'] = listing_dict['cancellation_policy'][:100] + '...'
                 
-                # Для комнат убираем images - они уже есть в listing.images
+                # Для комнат убираем images - их не загружаем из БД
                 rooms = []
                 for r in rooms_by_listing.get(listing['id'], []):
                     room_dict = dict(r)
-                    # Заменяем массив images на количество
-                    if 'image_count' in room_dict:
-                        room_dict['images'] = []  # Пустой массив вместо реальных URL
+                    # images_count уже есть в запросе, images не загружается
+                    if 'images_count' not in room_dict:
+                        room_dict['images_count'] = 0
+                    room_dict['images'] = []  # Пустой массив для совместимости с фронтендом
                     rooms.append(room_dict)
                 
                 listing_dict['rooms'] = rooms
