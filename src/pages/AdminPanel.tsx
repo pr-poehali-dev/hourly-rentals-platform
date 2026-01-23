@@ -67,7 +67,7 @@ export default function AdminPanel() {
   const loadListings = async () => {
     setIsLoading(true);
     try {
-      const limit = 200;
+      const limit = 1000;
       
       const [activeData, archivedData] = await Promise.all([
         api.getListings(token!, false, limit, 0),
