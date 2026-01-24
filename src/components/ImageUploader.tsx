@@ -23,7 +23,7 @@ export default function ImageUploader({ onUpload, multiple = false }: ImageUploa
     setTotalFiles(files.length);
 
     const uploadPromises: Promise<void>[] = [];
-    const completed = 0;
+    let completed = 0;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
