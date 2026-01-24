@@ -54,23 +54,33 @@ export default function ImageUploader({ onUpload, multiple = false }: ImageUploa
                 image: base64,
                 filename: file.name,
               }),
+              mode: 'cors',
+              credentials: 'omit',
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
-              throw new Error(data.error || 'Ошибка загрузки');
+              const errorText = await response.text();
+              let errorMessage = 'Ошибка загрузки';
+              try {
+                const errorData = JSON.parse(errorText);
+                errorMessage = errorData.error || errorMessage;
+              } catch {
+                errorMessage = errorText || errorMessage;
+              }
+              throw new Error(errorMessage);
             }
 
+            const data = await response.json();
             onUpload(data.url);
             toast({
               title: 'Успешно',
               description: 'Фото загружено',
             });
           } catch (error: any) {
+            console.error('Upload error:', error);
             toast({
               title: 'Ошибка загрузки',
-              description: error.message,
+              description: error.message || 'Не удалось загрузить фото',
               variant: 'destructive',
             });
           }
