@@ -18,28 +18,30 @@ export default function ImageUploader({ onUpload, multiple = false }: ImageUploa
 
     setIsUploading(true);
 
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        
-        if (!file.type.startsWith('image/')) {
-          toast({
-            title: 'Ошибка',
-            description: 'Можно загружать только изображения',
-            variant: 'destructive',
-          });
-          continue;
-        }
+    const uploadPromises: Promise<void>[] = [];
 
-        if (file.size > 10 * 1024 * 1024) {
-          toast({
-            title: 'Ошибка',
-            description: 'Размер файла не должен превышать 10 МБ',
-            variant: 'destructive',
-          });
-          continue;
-        }
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Ошибка',
+          description: 'Можно загружать только изображения',
+          variant: 'destructive',
+        });
+        continue;
+      }
 
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: 'Ошибка',
+          description: 'Размер файла не должен превышать 10 МБ',
+          variant: 'destructive',
+        });
+        continue;
+      }
+
+      const uploadPromise = new Promise<void>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async (event) => {
           try {
@@ -54,8 +56,6 @@ export default function ImageUploader({ onUpload, multiple = false }: ImageUploa
                 image: base64,
                 filename: file.name,
               }),
-              mode: 'cors',
-              credentials: 'omit',
             });
 
             if (!response.ok) {
@@ -76,6 +76,7 @@ export default function ImageUploader({ onUpload, multiple = false }: ImageUploa
               title: 'Успешно',
               description: 'Фото загружено',
             });
+            resolve();
           } catch (error: any) {
             console.error('Upload error:', error);
             toast({
@@ -83,10 +84,18 @@ export default function ImageUploader({ onUpload, multiple = false }: ImageUploa
               description: error.message || 'Не удалось загрузить фото',
               variant: 'destructive',
             });
+            reject(error);
           }
         };
+        reader.onerror = () => reject(new Error('Ошибка чтения файла'));
         reader.readAsDataURL(file);
-      }
+      });
+
+      uploadPromises.push(uploadPromise);
+    }
+
+    try {
+      await Promise.allSettled(uploadPromises);
     } finally {
       setIsUploading(false);
       e.target.value = '';
