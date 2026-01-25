@@ -19,7 +19,11 @@ def verify_token(token: str) -> dict:
 
 def handler(event: dict, context) -> dict:
     '''API для загрузки фотографий объектов'''
+    print('=== HANDLER CALLED ===')
+    print(f'Event: {json.dumps(event, default=str, ensure_ascii=False)}')
+    
     method = event.get('httpMethod', 'POST')
+    print(f'HTTP Method: {method}')
     
     # CORS headers для всех ответов
     cors_headers = {
@@ -30,6 +34,7 @@ def handler(event: dict, context) -> dict:
     }
     
     if method == 'OPTIONS':
+        print('OPTIONS request - returning CORS headers')
         return {
             'statusCode': 200,
             'headers': cors_headers,

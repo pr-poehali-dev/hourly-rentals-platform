@@ -216,15 +216,33 @@ export const api = {
 
   // Загрузка фото
   uploadPhoto: async (token: string, imageBase64: string, contentType: string) => {
+    console.log('[API] Uploading photo...');
+    console.log('[API] URL:', API_URLS.adminUpload);
+    console.log('[API] Content-Type:', contentType);
+    console.log('[API] Base64 length:', imageBase64.length);
+    
     const response = await fetch(API_URLS.adminUpload, {
       method: 'POST',
+      mode: 'cors',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ image: imageBase64, contentType }),
     });
-    return response.json();
+    
+    console.log('[API] Response status:', response.status);
+    console.log('[API] Response headers:', Object.fromEntries(response.headers.entries()));
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      console.error('[API] Upload failed:', errorData);
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('[API] Upload result:', result);
+    return result;
   },
 
   // Публичное получение объектов
