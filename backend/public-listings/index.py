@@ -57,11 +57,11 @@ def handler(event: dict, context) -> dict:
                 'isBase64Encoded': False
             }
         
-        # Получаем все комнаты одним запросом (БЕЗ images для экономии памяти)
+        # Получаем все комнаты одним запросом (с features для фильтрации, но БЕЗ images и description)
         listing_ids = [l['id'] for l in listings]
         placeholders = ','.join(['%s'] * len(listing_ids))
         cur.execute(
-            f"""SELECT listing_id, type, price, square_meters, min_hours
+            f"""SELECT listing_id, type, price, square_meters, min_hours, features
                 FROM t_p39732784_hourly_rentals_platf.rooms 
                 WHERE listing_id IN ({placeholders})""",
             listing_ids
