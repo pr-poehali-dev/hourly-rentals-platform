@@ -698,7 +698,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     }
   };
 
-  const compressImage = (file: File, maxWidth = 1200, quality = 0.7): Promise<string> => {
+  const compressImage = (file: File, maxWidth = 800, quality = 0.6): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -708,6 +708,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
           let width = img.width;
           let height = img.height;
 
+          // Ограничиваем размер
           if (width > maxWidth) {
             height = (height * maxWidth) / width;
             width = maxWidth;
@@ -718,27 +719,47 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
 
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) {
-                reject('Ошибка сжатия');
-                return;
-              }
-              const reader2 = new FileReader();
-              reader2.onload = () => {
-                const base64 = reader2.result?.toString().split(',')[1];
-                if (base64) {
-                  resolve(base64);
-                } else {
-                  reject('Ошибка чтения');
+          // Пробуем разные уровни качества, пока не получим нужный размер
+          let currentQuality = quality;
+          const tryCompress = () => {
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) {
+                  reject('Ошибка сжатия');
+                  return;
                 }
-              };
-              reader2.onerror = reject;
-              reader2.readAsDataURL(blob);
-            },
-            'image/jpeg',
-            quality
-          );
+                
+                // Проверяем размер (макс 2MB для base64)
+                const estimatedBase64Size = (blob.size * 4) / 3;
+                console.log(`Compressed size: ${blob.size} bytes (base64: ~${Math.round(estimatedBase64Size / 1024)}KB), quality: ${currentQuality}`);
+                
+                if (estimatedBase64Size > 2 * 1024 * 1024 && currentQuality > 0.3) {
+                  // Слишком большой, уменьшаем качество
+                  currentQuality -= 0.1;
+                  console.log(`Too large, retrying with quality ${currentQuality}`);
+                  tryCompress();
+                  return;
+                }
+                
+                const reader2 = new FileReader();
+                reader2.onload = () => {
+                  const base64 = reader2.result?.toString().split(',')[1];
+                  if (base64) {
+                    console.log(`Final base64 size: ${Math.round(base64.length / 1024)}KB`);
+                    resolve(base64);
+                  } else {
+                    reject('Ошибка чтения');
+                  }
+                };
+                reader2.onerror = reject;
+                reader2.readAsDataURL(blob);
+              },
+              'image/jpeg',
+              currentQuality
+            );
+          };
+          
+          tryCompress();
         };
         img.onerror = reject;
         img.src = e.target?.result as string;
