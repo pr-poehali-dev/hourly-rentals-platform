@@ -52,20 +52,63 @@ export default function OwnerOverviewTab({
   onExtendSubscription,
   onEditListing,
 }: OwnerOverviewTabProps) {
+  const activeListings = listings.filter(l => !l.is_archived);
+  const archivedListings = listings.filter(l => l.is_archived);
+
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {listings.map((listing) => (
-          <HotelSubscriptionCard
-            key={listing.id}
-            listing={listing}
-            subscriptionInfo={subscriptionInfo.get(listing.id) || null}
-            onExtend={onExtendSubscription}
-            onEdit={onEditListing}
-            isLoading={isLoading}
-          />
-        ))}
-      </div>
+      {/* Active Listings */}
+      {activeListings.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Icon name="Building" size={20} />
+            Активные объекты ({activeListings.length})
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {activeListings.map((listing) => (
+              <HotelSubscriptionCard
+                key={listing.id}
+                listing={listing}
+                subscriptionInfo={subscriptionInfo.get(listing.id) || null}
+                onExtend={onExtendSubscription}
+                onEdit={onEditListing}
+                isLoading={isLoading}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Archived Listings */}
+      {archivedListings.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-muted-foreground">
+            <Icon name="Archive" size={20} />
+            Архив ({archivedListings.length})
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 opacity-60">
+            {archivedListings.map((listing) => (
+              <HotelSubscriptionCard
+                key={listing.id}
+                listing={listing}
+                subscriptionInfo={subscriptionInfo.get(listing.id) || null}
+                onExtend={onExtendSubscription}
+                onEdit={onEditListing}
+                isLoading={isLoading}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeListings.length === 0 && archivedListings.length === 0 && (
+        <Card className="text-center py-12">
+          <CardHeader>
+            <CardTitle>У вас пока нет объектов</CardTitle>
+            <CardDescription>Свяжитесь с администратором для добавления объекта</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
     </div>
   );
 }
