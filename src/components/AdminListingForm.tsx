@@ -698,7 +698,7 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     }
   };
 
-  const compressImage = (file: File, maxWidth = 1920, quality = 0.85): Promise<string> => {
+  const compressImage = (file: File, maxWidth = 1200, quality = 0.7): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
