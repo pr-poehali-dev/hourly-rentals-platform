@@ -9,7 +9,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminPanel from "./pages/AdminPanel";
 import ListingPage from "./pages/ListingPage";
 import RoomDetails from "./pages/RoomDetails";
-import OwnerRegister from "./pages/OwnerRegister";
+
 import OwnerLogin from "./pages/OwnerLogin";
 import OwnerForgotPassword from "./pages/OwnerForgotPassword";
 import OwnerDashboard from "./pages/OwnerDashboard";
@@ -30,7 +30,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/owner/register" element={<OwnerRegister />} />
+
           <Route path="/owner/login" element={<OwnerLogin />} />
           <Route path="/owner/forgot-password" element={<OwnerForgotPassword />} />
           <Route path="/owner/dashboard" element={<OwnerDashboard />} />
