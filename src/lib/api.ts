@@ -221,12 +221,13 @@ export const api = {
     console.log('[API] Content-Type:', contentType);
     console.log('[API] Base64 length:', imageBase64.length);
     
-    const response = await fetch(API_URLS.adminUpload, {
+    // Используем query parameter для токена, чтобы избежать CORS preflight
+    const url = `${API_URLS.adminUpload}?token=${encodeURIComponent(token)}`;
+    
+    const response = await fetch(url, {
       method: 'POST',
-      mode: 'cors',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ image: imageBase64, contentType }),
     });

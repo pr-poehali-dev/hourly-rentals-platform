@@ -50,10 +50,15 @@ def handler(event: dict, context) -> dict:
             'isBase64Encoded': False
         }
     
-    # Проверка авторизации
-    auth_header = event.get('headers', {}).get('X-Authorization', '')
-    token = auth_header.replace('Bearer ', '') if auth_header else ''
+    # Проверка авторизации (из query параметра или заголовка)
+    token = event.get('queryStringParameters', {}).get('token', '')
+    if not token:
+        auth_header = event.get('headers', {}).get('X-Authorization', '')
+        token = auth_header.replace('Bearer ', '') if auth_header else ''
+    
+    print(f'Token (first 20 chars): {token[:20] if token else "EMPTY"}')
     admin = verify_token(token)
+    print(f'Admin verified: {bool(admin)}')
     
     if not admin:
         return {
