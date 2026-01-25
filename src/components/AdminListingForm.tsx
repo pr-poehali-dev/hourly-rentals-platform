@@ -698,6 +698,56 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     }
   };
 
+  const compressImage = (file: File, maxWidth = 1920, quality = 0.85): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject('Ошибка сжатия');
+                return;
+              }
+              const reader2 = new FileReader();
+              reader2.onload = () => {
+                const base64 = reader2.result?.toString().split(',')[1];
+                if (base64) {
+                  resolve(base64);
+                } else {
+                  reject('Ошибка чтения');
+                }
+              };
+              reader2.onerror = reject;
+              reader2.readAsDataURL(blob);
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const uploadRoomPhotosFiles = async (files: File[]) => {
     console.log('=== UPLOAD ROOM PHOTOS START ===');
     console.log('Files count:', files.length);
@@ -726,42 +776,28 @@ export default function AdminListingForm({ listing, token, onClose }: AdminListi
     try {
       for (const file of files) {
         console.log('Processing file:', file.name, file.type, file.size);
-        const reader = new FileReader();
-        const result = await new Promise<string>((resolve, reject) => {
-          reader.onload = async (event) => {
-            console.log('File read complete');
-            const base64 = event.target?.result?.toString().split(',')[1];
-            if (!base64) {
-              console.error('Failed to extract base64');
-              reject('Ошибка чтения файла');
-              return;
-            }
-            console.log('Base64 length:', base64.length);
+        
+        // Сжимаем изображение
+        console.log('Compressing image...');
+        const base64 = await compressImage(file);
+        console.log('Compressed base64 length:', base64.length);
 
-            try {
-              console.log('Calling api.uploadPhoto...');
-              const uploadResult = await api.uploadPhoto(token, base64, file.type);
-              console.log('Upload result:', uploadResult);
-              
-              if (uploadResult.url) {
-                console.log('Photo uploaded successfully:', uploadResult.url);
-                resolve(uploadResult.url);
-              } else {
-                console.error('No URL in upload result:', uploadResult);
-                reject('Не удалось загрузить');
-              }
-            } catch (err) {
-              console.error('Upload API error:', err);
-              reject(err);
-            }
-          };
-          reader.onerror = (err) => {
-            console.error('FileReader error:', err);
-            reject(err);
-          };
-          reader.readAsDataURL(file);
-        });
-        uploadedUrls.push(result);
+        try {
+          console.log('Calling api.uploadPhoto...');
+          const uploadResult = await api.uploadPhoto(token, base64, 'image/jpeg');
+          console.log('Upload result:', uploadResult);
+          
+          if (uploadResult.url) {
+            console.log('Photo uploaded successfully:', uploadResult.url);
+            uploadedUrls.push(uploadResult.url);
+          } else {
+            console.error('No URL in upload result:', uploadResult);
+            throw new Error('Не удалось загрузить');
+          }
+        } catch (err) {
+          console.error('Upload API error:', err);
+          throw err;
+        }
       }
 
       console.log('All photos uploaded:', uploadedUrls);
