@@ -118,11 +118,9 @@ export default function OwnerLogin() {
               </Link>
             </div>
 
-            <div className="text-center text-xs sm:text-sm text-muted-foreground border-t pt-3 sm:pt-4">
-              Нет аккаунта?{' '}
-              <Link to="/owner/register" className="text-purple-600 hover:underline hover:text-purple-700 font-medium transition-colors">
-                Зарегистрироваться
-              </Link>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4 text-xs sm:text-sm text-blue-900">
+              <Icon name="Info" size={14} className="inline mr-1" />
+              Для регистрации нажмите <Link to="/add-listing" className="text-purple-600 hover:underline font-medium">"Добавить объект"</Link> на главной странице
             </div>
           </form>
         </CardContent>
