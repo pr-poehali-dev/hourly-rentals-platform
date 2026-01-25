@@ -21,14 +21,18 @@ def handler(event: dict, context) -> dict:
     '''API для загрузки фотографий объектов'''
     method = event.get('httpMethod', 'POST')
     
+    # CORS headers для всех ответов
+    cors_headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Authorization',
+        'Access-Control-Max-Age': '86400'
+    }
+    
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Authorization'
-            },
+            'headers': cors_headers,
             'body': '',
             'isBase64Encoded': False
         }
@@ -36,7 +40,7 @@ def handler(event: dict, context) -> dict:
     if method != 'POST':
         return {
             'statusCode': 405,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': {**cors_headers, 'Content-Type': 'application/json'},
             'body': json.dumps({'error': 'Method not allowed'}),
             'isBase64Encoded': False
         }
@@ -49,7 +53,7 @@ def handler(event: dict, context) -> dict:
     if not admin:
         return {
             'statusCode': 401,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': {**cors_headers, 'Content-Type': 'application/json'},
             'body': json.dumps({'error': 'Требуется авторизация'}),
             'isBase64Encoded': False
         }
@@ -64,7 +68,7 @@ def handler(event: dict, context) -> dict:
         if not image_base64:
             return {
                 'statusCode': 400,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'headers': {**cors_headers, 'Content-Type': 'application/json'},
                 'body': json.dumps({'error': 'Изображение обязательно'}),
                 'isBase64Encoded': False
             }
@@ -95,7 +99,7 @@ def handler(event: dict, context) -> dict:
         
         return {
             'statusCode': 200,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': {**cors_headers, 'Content-Type': 'application/json'},
             'body': json.dumps({'url': cdn_url}),
             'isBase64Encoded': False
         }
@@ -103,7 +107,7 @@ def handler(event: dict, context) -> dict:
     except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': {**cors_headers, 'Content-Type': 'application/json'},
             'body': json.dumps({'error': str(e)}),
             'isBase64Encoded': False
         }
