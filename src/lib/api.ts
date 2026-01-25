@@ -262,6 +262,13 @@ export const api = {
     return result;
   },
 
+  // Получение деталей номера с фотографиями
+  getRoomDetails: async (listingId: number, roomIndex: number) => {
+    const response = await fetch(`${API_URLS.publicListings}?listing_id=${listingId}&room_index=${roomIndex}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  },
+
   // Публичное получение объектов
   getPublicListings: async () => {
     const response = await fetch(API_URLS.publicListings);

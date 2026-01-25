@@ -27,13 +27,15 @@ export default function RoomDetails() {
       try {
         const listings = await api.getPublicListings();
         const foundListing = listings.find((l: any) => l.id === parseInt(listingId || '0'));
-        const foundRoom = foundListing?.rooms?.[parseInt(roomIndex || '0')];
         
-        console.log('Room data:', foundRoom);
-        console.log('Room images:', foundRoom?.images);
+        // Загружаем полные детали номера с фотографиями
+        const roomDetails = await api.getRoomDetails(parseInt(listingId || '0'), parseInt(roomIndex || '0'));
+        
+        console.log('Room details with images:', roomDetails);
+        console.log('Room images:', roomDetails?.images);
         
         setListing(foundListing);
-        setRoom(foundRoom);
+        setRoom(roomDetails);
       } catch (error) {
         console.error('Failed to load listing:', error);
       } finally {

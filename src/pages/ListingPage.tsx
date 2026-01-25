@@ -22,6 +22,21 @@ export default function ListingPage() {
         const listings = await api.getPublicListings();
         const foundListing = listings.find((l: any) => l.id === parseInt(listingId || '0'));
         
+        // Загружаем детали всех номеров с фотографиями
+        if (foundListing && foundListing.rooms) {
+          const roomsWithImages = await Promise.all(
+            foundListing.rooms.map(async (_: any, index: number) => {
+              try {
+                return await api.getRoomDetails(foundListing.id, index);
+              } catch (error) {
+                console.error(`Failed to load room ${index}:`, error);
+                return foundListing.rooms[index]; // Fallback к данным без фото
+              }
+            })
+          );
+          foundListing.rooms = roomsWithImages;
+        }
+        
         setListing(foundListing);
       } catch (error) {
         console.error('Failed to load listing:', error);
