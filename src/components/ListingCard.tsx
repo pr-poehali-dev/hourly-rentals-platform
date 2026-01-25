@@ -16,7 +16,7 @@ type Listing = {
   metro: string;
   metroWalk: number;
   hasParking: boolean;
-  features: string[];
+  features?: string[];
   lat: number;
   lng: number;
   minHours: number;
@@ -117,7 +117,7 @@ export default function ListingCard({
               Парковка
             </Badge>
           )}
-          {listing.features.slice(0, 2).map((feature, idx) => (
+          {listing.features && listing.features.slice(0, 2).map((feature, idx) => (
             <Badge key={idx} variant="secondary">{feature}</Badge>
           ))}
         </div>
