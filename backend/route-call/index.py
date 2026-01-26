@@ -147,22 +147,21 @@ def handler(event: dict, context) -> dict:
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Ищем в истории последний показ этого номера с проверкой срока действия
+        # Ищем активное назначение виртуального номера на объект
         cur.execute("""
             SELECT 
-                ct.listing_id,
-                ct.expires_at,
+                vn.assigned_listing_id as listing_id,
+                vn.assigned_until as expires_at,
                 l.short_title,
                 l.phone as owner_phone,
                 l.id as listing_number,
-                (ct.expires_at > NOW()) as is_valid
-            FROM call_tracking ct
-            JOIN listings l ON ct.listing_id = l.id
-            WHERE ct.client_phone = %s 
-              AND ct.virtual_number = %s
-            ORDER BY ct.shown_at DESC
+                (vn.assigned_until > NOW()) as is_valid
+            FROM virtual_numbers vn
+            JOIN listings l ON vn.assigned_listing_id = l.id
+            WHERE vn.phone = %s 
+              AND vn.is_busy = TRUE
             LIMIT 1
-        """, (client_phone, virtual_number))
+        """, (virtual_number,))
         
         result = cur.fetchone()
         
@@ -172,17 +171,15 @@ def handler(event: dict, context) -> dict:
         if result:
             # Проверяем, действителен ли номер (не истёк ли срок 30 минут)
             if result['is_valid']:
-                # Номер действителен - соединяем с владельцем
+                # Номер действителен - записываем звонок в историю
                 conn = psycopg2.connect(os.environ['DATABASE_URL'])
                 cur = conn.cursor()
                 cur.execute("""
-                    UPDATE call_tracking 
-                    SET called_at = NOW()
-                    WHERE listing_id = %s 
-                      AND client_phone = %s
-                      AND virtual_number = %s
-                      AND called_at IS NULL
-                """, (result['listing_id'], client_phone, virtual_number))
+                    INSERT INTO call_tracking 
+                    (virtual_number, listing_id, client_phone, shown_at, called_at, expires_at)
+                    VALUES (%s, %s, %s, NOW(), NOW(), %s)
+                    ON CONFLICT DO NOTHING
+                """, (virtual_number, result['listing_id'], client_phone, result['expires_at']))
                 conn.commit()
                 cur.close()
                 conn.close()
