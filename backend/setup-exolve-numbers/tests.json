@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Setup Exolve numbers",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}
