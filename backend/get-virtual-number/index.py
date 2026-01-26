@@ -158,7 +158,7 @@ def handler(event: dict, context) -> dict:
             }
         
         virtual_number = result['phone']
-        expires_at = datetime.now() + timedelta(minutes=30)
+        expires_at = datetime.now() + timedelta(minutes=10)
         
         # Настраиваем переадресацию через Exolve API
         exolve_success = setup_mts_forwarding(exolve_api_key, virtual_number, owner_phone, expires_at)
