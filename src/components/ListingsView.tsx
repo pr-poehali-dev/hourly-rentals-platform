@@ -112,6 +112,7 @@ export default function ListingsView({
     setSelectedListingId(listingId);
     
     try {
+      console.log('Requesting virtual number for listing:', listingId);
       const response = await fetch('https://functions.poehali.dev/4a500ec2-2f33-49d9-87d0-3779d8d52ae5', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,11 +122,15 @@ export default function ListingsView({
         })
       });
       
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
       
       if (response.ok && data.virtual_number) {
+        console.log('Got virtual number:', data.virtual_number);
         setSelectedPhone(data.virtual_number);
       } else {
+        console.log('Using fallback phone:', phone);
         setSelectedPhone(phone);
       }
     } catch (error) {

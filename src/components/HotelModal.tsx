@@ -44,6 +44,7 @@ export default function HotelModal({ open, onOpenChange, hotel }: HotelModalProp
     setIsLoadingPhone(true);
     
     try {
+      console.log('[HotelModal] Requesting virtual number for listing:', hotel.id);
       const response = await fetch('https://functions.poehali.dev/4a500ec2-2f33-49d9-87d0-3779d8d52ae5', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -53,15 +54,19 @@ export default function HotelModal({ open, onOpenChange, hotel }: HotelModalProp
         })
       });
       
+      console.log('[HotelModal] Response status:', response.status);
       const data = await response.json();
+      console.log('[HotelModal] Response data:', data);
       
       if (response.ok && data.virtual_number) {
+        console.log('[HotelModal] Got virtual number:', data.virtual_number);
         setVirtualPhone(data.virtual_number);
       } else {
+        console.log('[HotelModal] Using fallback phone:', hotel.phone);
         setVirtualPhone(hotel.phone || '');
       }
     } catch (error) {
-      console.error('Failed to get virtual number:', error);
+      console.error('[HotelModal] Failed to get virtual number:', error);
       setVirtualPhone(hotel.phone || '');
     } finally {
       setIsLoadingPhone(false);
