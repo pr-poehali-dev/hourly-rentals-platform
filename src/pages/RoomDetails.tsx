@@ -21,6 +21,18 @@ export default function RoomDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [imageGalleryOpen, setImageGalleryOpen] = useState(false);
+  const [virtualPhone, setVirtualPhone] = useState<string | null>(null);
+  const [phoneLoading, setPhoneLoading] = useState(false);
+
+  // Генерация анонимного ID клиента
+  const getClientId = () => {
+    let clientId = localStorage.getItem('client_id');
+    if (!clientId) {
+      clientId = `anon_${Math.random().toString(36).substring(2, 15)}`;
+      localStorage.setItem('client_id', clientId);
+    }
+    return clientId;
+  };
 
   useEffect(() => {
     const loadListing = async () => {
@@ -279,7 +291,21 @@ export default function RoomDetails() {
                   <div className="flex flex-col gap-3">
                     {listing.phone && (
                       <Button 
-                        onClick={() => setPhoneModalOpen(true)}
+                        onClick={async () => {
+                          setPhoneModalOpen(true);
+                          if (!virtualPhone && !phoneLoading) {
+                            setPhoneLoading(true);
+                            try {
+                              const clientId = getClientId();
+                              const result = await api.getVirtualNumber(parseInt(listingId || '0'), clientId);
+                              setVirtualPhone(result.virtual_number);
+                            } catch (error) {
+                              console.error('Failed to get virtual number:', error);
+                            } finally {
+                              setPhoneLoading(false);
+                            }
+                          }
+                        }}
                         className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg py-6"
                       >
                         <Icon name="Phone" size={20} className="mr-2" />
@@ -344,21 +370,33 @@ export default function RoomDetails() {
             <DialogTitle className="text-2xl font-bold text-center">Номер телефона</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
-            <div className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 rounded-xl p-6 text-center">
-              <Icon name="Phone" size={48} className="mx-auto mb-3 text-green-600" />
-              <a href={`tel:${listing.phone}`} className="text-3xl font-bold text-green-600 hover:text-green-700 transition-colors">
-                {listing.phone}
-              </a>
-            </div>
-            <Button 
-              asChild
-              className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg py-6"
-            >
-              <a href={`tel:${listing.phone}`}>
-                <Icon name="Phone" size={20} className="mr-2" />
-                Позвонить сейчас
-              </a>
-            </Button>
+            {phoneLoading ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Icon name="Loader2" size={48} className="animate-spin text-green-600 mb-3" />
+                <p className="text-muted-foreground">Получение номера...</p>
+              </div>
+            ) : (
+              <>
+                <div className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 rounded-xl p-6 text-center">
+                  <Icon name="Phone" size={48} className="mx-auto mb-3 text-green-600" />
+                  <a href={`tel:${virtualPhone || listing.phone}`} className="text-3xl font-bold text-green-600 hover:text-green-700 transition-colors">
+                    {virtualPhone || listing.phone}
+                  </a>
+                  {virtualPhone && (
+                    <p className="text-sm text-muted-foreground mt-2">Номер активен 30 минут</p>
+                  )}
+                </div>
+                <Button 
+                  asChild
+                  className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg py-6"
+                >
+                  <a href={`tel:${virtualPhone || listing.phone}`}>
+                    <Icon name="Phone" size={20} className="mr-2" />
+                    Позвонить сейчас
+                  </a>
+                </Button>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>

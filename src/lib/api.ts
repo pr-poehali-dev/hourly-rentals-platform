@@ -16,6 +16,7 @@ const API_URLS = {
   ownerTransactions: 'https://functions.poehali.dev/d65e7c1b-75b3-4a33-965b-70ee3a543a50',
   subscription: 'https://functions.poehali.dev/083c2fbe-03b3-474d-accd-281d4089bb06',
   detectCity: 'https://functions.poehali.dev/15d3dd6b-83e0-48c3-b215-802340270720',
+  getVirtualNumber: 'https://functions.poehali.dev/4a500ec2-2f33-49d9-87d0-3779d8d52ae5',
 };
 
 export const api = {
@@ -745,6 +746,20 @@ export const api = {
         'X-Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ action: 'mark_unpaid', bonus_ids: bonusIds }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+
+  // Система подменных номеров
+  getVirtualNumber: async (listingId: number, clientId: string) => {
+    const response = await fetch(API_URLS.getVirtualNumber, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listing_id: listingId, client_phone: clientId }),
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Network error' }));
