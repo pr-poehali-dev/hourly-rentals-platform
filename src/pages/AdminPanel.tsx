@@ -11,6 +11,7 @@ import AdminEmployeesTab from '@/components/AdminEmployeesTab';
 import AdminBonusesTab from '@/components/AdminBonusesTab';
 import AdminAllActionsTab from '@/components/AdminAllActionsTab';
 import AdminModerationTab from '@/components/AdminModerationTab';
+import AdminCallTrackingTab from '@/components/AdminCallTrackingTab';
 import AdminPanelHeader from '@/components/admin/AdminPanelHeader';
 import AdminListingsFilters from '@/components/admin/AdminListingsFilters';
 import AdminListingsContent from '@/components/admin/AdminListingsContent';
@@ -20,7 +21,7 @@ import OwnerModerationDialog from '@/components/admin/OwnerModerationDialog';
 import ExpertRatingDialogFull from '@/components/ExpertRatingDialogFull';
 
 export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState<'listings' | 'moderation' | 'recheck' | 'rejected' | 'owners' | 'employees' | 'bonuses' | 'all-actions'>('listings');
+  const [activeTab, setActiveTab] = useState<'listings' | 'moderation' | 'recheck' | 'rejected' | 'owners' | 'employees' | 'bonuses' | 'all-actions' | 'call-tracking'>('listings');
   const [selectedListing, setSelectedListing] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [subscriptionDialog, setSubscriptionDialog] = useState<{ open: boolean; listing: any | null }>({ open: false, listing: null });
@@ -199,6 +200,8 @@ export default function AdminPanel() {
           <AdminBonusesTab token={token!} />
         ) : activeTab === 'all-actions' && adminInfo?.role === 'superadmin' ? (
           <AdminAllActionsTab token={token!} />
+        ) : activeTab === 'call-tracking' && adminInfo?.role === 'superadmin' ? (
+          <AdminCallTrackingTab />
         ) : hasPermission('listings') ? (
         <>
         <AdminListingsFilters

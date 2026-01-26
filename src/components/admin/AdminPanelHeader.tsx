@@ -4,8 +4,8 @@ import Icon from '@/components/ui/icon';
 interface AdminPanelHeaderProps {
   adminInfo: any;
   hasPermission: (permission: string) => boolean;
-  activeTab: 'listings' | 'moderation' | 'recheck' | 'rejected' | 'owners' | 'employees' | 'bonuses' | 'all-actions';
-  onTabChange: (tab: 'listings' | 'moderation' | 'recheck' | 'rejected' | 'owners' | 'employees' | 'bonuses' | 'all-actions') => void;
+  activeTab: 'listings' | 'moderation' | 'recheck' | 'rejected' | 'owners' | 'employees' | 'bonuses' | 'all-actions' | 'call-tracking';
+  onTabChange: (tab: 'listings' | 'moderation' | 'recheck' | 'rejected' | 'owners' | 'employees' | 'bonuses' | 'all-actions' | 'call-tracking') => void;
   onLogout: () => void;
 }
 
@@ -114,6 +114,14 @@ export default function AdminPanelHeader({ adminInfo, hasPermission, activeTab, 
               >
                 <Icon name="ListChecks" size={18} className="mr-2" />
                 Общая работа
+              </Button>
+              <Button
+                variant={activeTab === 'call-tracking' ? 'default' : 'ghost'}
+                onClick={() => onTabChange('call-tracking')}
+                className="rounded-b-none"
+              >
+                <Icon name="Phone" size={18} className="mr-2" />
+                Звонки
               </Button>
             </>
           )}

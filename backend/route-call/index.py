@@ -16,11 +16,87 @@ def handler(event: dict, context) -> dict:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type'
             },
             'body': ''
         }
+    
+    # GET - статистика звонков для админки
+    if method == 'GET':
+        query_params = event.get('queryStringParameters', {})
+        action = query_params.get('action') if query_params else None
+        
+        if action == 'stats':
+            try:
+                conn = psycopg2.connect(os.environ['DATABASE_URL'])
+                cur = conn.cursor(cursor_factory=RealDictCursor)
+                
+                # Общая статистика
+                cur.execute("""
+                    SELECT 
+                        COUNT(*) as total_shown,
+                        COUNT(called_at) as total_called,
+                        COUNT(CASE WHEN expires_at > NOW() AND called_at IS NULL THEN 1 END) as active_sessions
+                    FROM call_tracking
+                    WHERE shown_at >= NOW() - INTERVAL '30 days'
+                """)
+                stats = cur.fetchone()
+                
+                # Последние 50 звонков
+                cur.execute("""
+                    SELECT 
+                        ct.id,
+                        ct.virtual_number,
+                        ct.client_phone,
+                        ct.listing_id,
+                        ct.shown_at,
+                        ct.called_at,
+                        ct.expires_at,
+                        l.short_title as listing_title
+                    FROM call_tracking ct
+                    LEFT JOIN listings l ON ct.listing_id = l.id
+                    ORDER BY ct.shown_at DESC
+                    LIMIT 50
+                """)
+                calls = cur.fetchall()
+                
+                # Конвертируем datetime в строки
+                for call in calls:
+                    for key in ['shown_at', 'called_at', 'expires_at']:
+                        if call.get(key):
+                            call[key] = call[key].isoformat()
+                
+                conversion_rate = 0
+                if stats['total_shown'] > 0:
+                    conversion_rate = (stats['total_called'] / stats['total_shown']) * 100
+                
+                cur.close()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'total_shown': stats['total_shown'],
+                        'total_called': stats['total_called'],
+                        'conversion_rate': conversion_rate,
+                        'active_sessions': stats['active_sessions'],
+                        'calls': calls
+                    })
+                }
+            except Exception as e:
+                return {
+                    'statusCode': 500,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': str(e)})
+                }
+        else:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Invalid action parameter'})
+            }
     
     if method != 'POST':
         return {
