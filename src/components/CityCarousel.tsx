@@ -61,9 +61,6 @@ export default function CityCarousel({
         <h3 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
           {city}
         </h3>
-        <Badge variant="outline" className="text-base px-3 py-1">
-          {cityListings.length}
-        </Badge>
       </div>
 
       <div className="relative group">
