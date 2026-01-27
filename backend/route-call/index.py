@@ -204,7 +204,8 @@ def handler(event: dict, context) -> dict:
                             'redirect_type': 1,
                             'event_extended': False,
                             'masking': False,
-                            'file_to_A': '287372',
+                            'file_to_A': '287404',
+                            'file_to_B': '287372',
                             'answer': False,
                             'followme_struct': [1, [{
                                 'I_FOLLOW_ORDER': 1,
