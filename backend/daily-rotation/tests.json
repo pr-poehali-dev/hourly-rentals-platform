@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Test daily rotation endpoint exists",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
